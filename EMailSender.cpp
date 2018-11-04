@@ -75,54 +75,51 @@ const char* encode64_f(char* input, uint8_t len) {
 
 // END BASE64 ---------------------------------------------------------
 
-EMailSender::EMailSender(const char* email_login, const char* email_password, const char* email_from,
+EMailSender::EMailSender(const char* email_login, const char* email_password, const char* email_from, // @suppress("Class members should be properly initialized")
 		const char* smtp_server, uint16_t smtp_port) {
-	delete [] this->email_login;
-	this->email_login = new char[strlen(email_login)+1];
-	strcpy(this->email_login, email_login);
+	this->setEMailLogin(email_login);
+	this->setEMailFrom(email_from);
+	this->setEMailPassword(email_password);
+	this->setSMTPServer(smtp_server);
+	this->setSMTPPort(smtp_port);
+}
 
-	delete [] this->email_from;
-	this->email_from = new char[strlen(email_from)+1];
-	strcpy(this->email_from, email_from);
+EMailSender::EMailSender(const char* email_login, const char* email_password, const char* email_from) { // @suppress("Class members should be properly initialized")
+	this->setEMailLogin(email_login);
+	this->setEMailFrom(email_from);
+	this->setEMailPassword(email_password);
+}
 
-	delete [] this->email_password;
-	this->email_password = new char[strlen(email_password)+1];
-	strcpy(this->email_password, email_password);
+EMailSender::EMailSender(const char* email_login, const char* email_password){ // @suppress("Class members should be properly initialized")
+	this->setEMailLogin(email_login);
+	this->setEMailFrom(email_login);
+	this->setEMailPassword(email_password);
+}
 
+void EMailSender::setSMTPPort(uint16_t smtp_port){
+	this->smtp_port = smtp_port;
+};
+void EMailSender::setSMTPServer(const char* smtp_server){
 	delete [] this->smtp_server;
 	this->smtp_server = new char[strlen(smtp_server)+1];
 	strcpy(this->smtp_server, smtp_server);
+};
 
-	this->smtp_port = smtp_port;
-}
-
-EMailSender::EMailSender(const char* email_login, const char* email_password, const char* email_from) {
+void EMailSender::setEMailLogin(const char* email_login){
 	delete [] this->email_login;
 	this->email_login = new char[strlen(email_login)+1];
 	strcpy(this->email_login, email_login);
-
+};
+void EMailSender::setEMailFrom(const char* email_from){
 	delete [] this->email_from;
 	this->email_from = new char[strlen(email_from)+1];
 	strcpy(this->email_from, email_from);
-
+};
+void EMailSender::setEMailPassword(const char* email_password){
 	delete [] this->email_password;
 	this->email_password = new char[strlen(email_password)+1];
 	strcpy(this->email_password, email_password);
-}
-
-EMailSender::EMailSender(const char* email_login, const char* email_password){
-	delete [] this->email_login;
-	this->email_login = new char[strlen(email_login)+1];
-	strcpy(this->email_login, email_login);
-
-	delete [] this->email_from;
-	this->email_from = new char[strlen(email_login)+1];
-	strcpy(this->email_from, email_login);
-
-	delete [] this->email_password;
-	this->email_password = new char[strlen(email_password)+1];
-	strcpy(this->email_password, email_password);
-}
+};
 
 EMailSender::Response EMailSender::awaitSMTPResponse(WiFiClientSecure &client,
 		const char* resp, const char* respDesc, uint16_t timeOut) {

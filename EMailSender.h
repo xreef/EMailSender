@@ -47,6 +47,12 @@ public:
 		bool status = false;
 	} Response;
 
+	void setSMTPPort(uint16_t smtp_port);
+	void setSMTPServer(const char* smtp_server);
+	void setEMailLogin(const char* email_login);
+	void setEMailFrom(const char* email_from);
+	void setEMailPassword(const char* email_password);
+
 	EMailSender::Response send(const char* to, EMailMessage &email);
 private:
 	uint16_t smtp_port = 465;
