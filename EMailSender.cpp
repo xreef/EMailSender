@@ -152,7 +152,9 @@ EMailSender::Response EMailSender::send(const char* to, EMailMessage &email)
   WiFiClientSecure client;
 
   DEBUG_PRINT(F("Connecting to :"));
-  DEBUG_PRINTLN(this->smtp_server);
+  DEBUG_PRINT(this->smtp_server);
+  DEBUG_PRINT(F(":"));
+  DEBUG_PRINTLN(this->smtp_port);
 
   EMailSender::Response response;
 
