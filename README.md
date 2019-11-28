@@ -1,6 +1,8 @@
-Library to send EMail via esp8266. 
+# Library to send EMail via esp8266. 
 
-Tutorial: 
+### [Updated tutorial on my site](https://www.mischianti.org/2019/09/10/send-email-with-esp8266-and-arduino/)
+
+## Tutorial: 
 
 To download. click the DOWNLOADS button in the top right corner, rename the uncompressed folder EMailSender. Check that the EMailSender folder contains `EMailSender\\.cpp` and `EMailSender.h`. Place the DHT library folder your `<arduinosketchfolder>/libraries/` folder. You may need to create the libraries subfolder if its your first library. Restart the IDE.
 

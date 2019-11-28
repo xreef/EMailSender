@@ -32,9 +32,9 @@
 
 class EMailSender {
 public:
-	EMailSender(const char* email_login, const char* email_password, const char* email_from, const char* smtp_server, uint16_t smtp_port);
-	EMailSender(const char* email_login, const char* email_password, const char* email_from);
-	EMailSender(const char* email_login, const char* email_password);
+	EMailSender(const char* email_login, const char* email_password, const char* email_from, const char* smtp_server, uint16_t smtp_port, bool isSecure = false);
+	EMailSender(const char* email_login, const char* email_password, const char* email_from, bool isSecure = false);
+	EMailSender(const char* email_login, const char* email_password, bool isSecure = false);
 
 	typedef struct {
 		String subject;
@@ -60,6 +60,8 @@ private:
 	char* email_login;
 	char* email_from;
 	char* email_password;
+
+	bool isSecure = false;
 
     String _serverResponce;
     Response awaitSMTPResponse(WiFiClientSecure &client, const char* resp = "", const char* respDesc = "", uint16_t timeOut = 10000);

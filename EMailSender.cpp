@@ -76,24 +76,30 @@ const char* encode64_f(char* input, uint8_t len) {
 // END BASE64 ---------------------------------------------------------
 
 EMailSender::EMailSender(const char* email_login, const char* email_password, const char* email_from, // @suppress("Class members should be properly initialized")
-		const char* smtp_server, uint16_t smtp_port) {
+		const char* smtp_server, uint16_t smtp_port, bool isSecure) {
 	this->setEMailLogin(email_login);
 	this->setEMailFrom(email_from);
 	this->setEMailPassword(email_password);
 	this->setSMTPServer(smtp_server);
 	this->setSMTPPort(smtp_port);
+
+	this->isSecure = isSecure;
 }
 
-EMailSender::EMailSender(const char* email_login, const char* email_password, const char* email_from) { // @suppress("Class members should be properly initialized")
+EMailSender::EMailSender(const char* email_login, const char* email_password, const char* email_from, bool isSecure) { // @suppress("Class members should be properly initialized")
 	this->setEMailLogin(email_login);
 	this->setEMailFrom(email_from);
 	this->setEMailPassword(email_password);
+
+	this->isSecure = isSecure;
 }
 
-EMailSender::EMailSender(const char* email_login, const char* email_password){ // @suppress("Class members should be properly initialized")
+EMailSender::EMailSender(const char* email_login, const char* email_password, bool isSecure){ // @suppress("Class members should be properly initialized")
 	this->setEMailLogin(email_login);
 	this->setEMailFrom(email_login);
 	this->setEMailPassword(email_password);
+
+	this->isSecure = isSecure;
 }
 
 void EMailSender::setSMTPPort(uint16_t smtp_port){
@@ -150,6 +156,10 @@ EMailSender::Response EMailSender::awaitSMTPResponse(WiFiClientSecure &client,
 EMailSender::Response EMailSender::send(const char* to, EMailMessage &email)
 {
   WiFiClientSecure client;
+
+  if (this->isSecure == false){
+	  client.setInsecure();
+  }
 
   DEBUG_PRINT(F("Connecting to :"));
   DEBUG_PRINT(this->smtp_server);
