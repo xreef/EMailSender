@@ -57,9 +57,9 @@ public:
 private:
 	uint16_t smtp_port = 465;
 	char* smtp_server = strdup("smtp.gmail.com");
-	char* email_login;
-	char* email_from;
-	char* email_password;
+	char* email_login = 0;
+	char* email_from  = 0;
+	char* email_password = 0;
 
 	bool isSecure = false;
 
