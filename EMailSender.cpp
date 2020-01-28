@@ -127,6 +127,10 @@ void EMailSender::setEMailPassword(const char* email_password){
 	strcpy(this->email_password, email_password);
 };
 
+void EMailSender::setIsSecure(bool isSecure) {
+	this->isSecure = isSecure;
+}
+
 EMailSender::Response EMailSender::awaitSMTPResponse(WiFiClientSecure &client,
 		const char* resp, const char* respDesc, uint16_t timeOut) {
 	EMailSender::Response response;
@@ -157,14 +161,21 @@ EMailSender::Response EMailSender::send(const char* to, EMailMessage &email)
 {
   WiFiClientSecure client;
 
-  if (this->isSecure == false){
-	  client.setInsecure();
-  }
+  DEBUG_PRINT(F("Insecure client:"));
+  DEBUG_PRINTLN(this->isSecure);
 
-  DEBUG_PRINT(F("Connecting to :"));
-  DEBUG_PRINT(this->smtp_server);
-  DEBUG_PRINT(F(":"));
-  DEBUG_PRINTLN(this->smtp_port);
+#ifndef ARDUINO_ESP8266_RELEASE_2_4_2
+  if (this->isSecure == false){
+	  client->setInsecure();
+	  bool mfln = client->probeMaxFragmentLength(host.c_str(), port, 512);
+
+	  DEBUG_PRINTLN("MFLN supported: %s\n", mfln ? "yes" : "no");
+
+	  if (mfln) {
+		  client->setBufferSizes(512, 512);
+	  }
+  }
+#endif
 
   EMailSender::Response response;
 

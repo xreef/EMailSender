@@ -15,6 +15,8 @@
 #include "WProgram.h"
 #endif
 
+//#define ARDUINO_ESP8266_RELEASE_2_4_2
+
 // Uncomment to enable printing out nice debug messages.
 // #define EMAIL_SENDER_DEBUG
 
@@ -54,6 +56,9 @@ public:
 	void setEMailPassword(const char* email_password);
 
 	EMailSender::Response send(const char* to, EMailMessage &email);
+
+	void setIsSecure(bool isSecure = false);
+
 private:
 	uint16_t smtp_port = 465;
 	char* smtp_server = strdup("smtp.gmail.com");
