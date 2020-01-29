@@ -166,13 +166,13 @@ EMailSender::Response EMailSender::send(const char* to, EMailMessage &email)
 
 #ifndef ARDUINO_ESP8266_RELEASE_2_4_2
   if (this->isSecure == false){
-	  client->setInsecure();
-	  bool mfln = client->probeMaxFragmentLength(host.c_str(), port, 512);
+	  client.setInsecure();
+	  bool mfln = client.probeMaxFragmentLength(this->smtp_server, this->smtp_port, 512);
 
 	  DEBUG_PRINTLN("MFLN supported: %s\n", mfln ? "yes" : "no");
 
 	  if (mfln) {
-		  client->setBufferSizes(512, 512);
+		  client.setBufferSizes(512, 512);
 	  }
   }
 #endif

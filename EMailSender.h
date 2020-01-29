@@ -15,7 +15,8 @@
 #include "WProgram.h"
 #endif
 
-//#define ARDUINO_ESP8266_RELEASE_2_4_2
+// Uncomment if you use esp8266 core <= 2.4.2
+// #define ARDUINO_ESP8266_RELEASE_2_4_2
 
 // Uncomment to enable printing out nice debug messages.
 // #define EMAIL_SENDER_DEBUG
