@@ -169,7 +169,8 @@ EMailSender::Response EMailSender::send(const char* to, EMailMessage &email)
 	  client.setInsecure();
 	  bool mfln = client.probeMaxFragmentLength(this->smtp_server, this->smtp_port, 512);
 
-	  DEBUG_PRINTLN("MFLN supported: %s\n", mfln ? "yes" : "no");
+	  DEBUG_PRINT("MFLN supported: ");
+	  DEBUG_PRINTLN(mfln?"yes":"no");
 
 	  if (mfln) {
 		  client.setBufferSizes(512, 512);
