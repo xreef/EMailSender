@@ -131,7 +131,7 @@ void EMailSender::setIsSecure(bool isSecure) {
 	this->isSecure = isSecure;
 }
 
-EMailSender::Response EMailSender::awaitSMTPResponse(WiFiClientSecure &client,
+EMailSender::Response EMailSender::awaitSMTPResponse(EMAIL_NETWORK_CLASS &client,
 		const char* resp, const char* respDesc, uint16_t timeOut) {
 	EMailSender::Response response;
 	uint32_t ts = millis();
@@ -157,25 +157,28 @@ EMailSender::Response EMailSender::awaitSMTPResponse(WiFiClientSecure &client,
 	return response;
 }
 
-EMailSender::Response EMailSender::send(const char* to, EMailMessage &email)
+EMailSender::Response EMailSender::send(const char* to, EMailMessage &email, const char* publicIP)
 {
-  WiFiClientSecure client;
+	EMAIL_NETWORK_CLASS client;
+//	SSLClient client(base_client, TAs, (size_t)TAs_NUM, A5);
 
   DEBUG_PRINT(F("Insecure client:"));
   DEBUG_PRINTLN(this->isSecure);
 
-#ifndef ARDUINO_ESP8266_RELEASE_2_4_2
-  if (this->isSecure == false){
-	  client.setInsecure();
-	  bool mfln = client.probeMaxFragmentLength(this->smtp_server, this->smtp_port, 512);
+#if (EMAIL_NETWORK_TYPE == NETWORK_ESP8266)
+	#ifndef ARDUINO_ESP8266_RELEASE_2_4_2
+	  if (this->isSecure == false){
+		  client.setInsecure();
+		  bool mfln = client.probeMaxFragmentLength(this->smtp_server, this->smtp_port, 512);
 
-	  DEBUG_PRINT("MFLN supported: ");
-	  DEBUG_PRINTLN(mfln?"yes":"no");
+		  DEBUG_PRINT("MFLN supported: ");
+		  DEBUG_PRINTLN(mfln?"yes":"no");
 
-	  if (mfln) {
-		  client.setBufferSizes(512, 512);
+		  if (mfln) {
+			  client.setBufferSizes(512, 512);
+		  }
 	  }
-  }
+	#endif
 #endif
 
   EMailSender::Response response;
@@ -192,28 +195,39 @@ EMailSender::Response EMailSender::send(const char* to, EMailMessage &email)
   if (!response.status) return response;
 
 
+//  Serial.println(F("Sending hello"));
+//  // replace 1.2.3.4 with your Arduino's ip
+//  client.println("EHLO 1.2.3.4");
+//  if(!eRcv()) return 0;
 
-  DEBUG_PRINTLN(F("HELO friend:"));
-  client.println(F("HELO friend"));
+//  DEBUG_PRINTLN(F("EHLO 192.168.1.138:"));
+//  client.println(F("EHLO 192.168.1.138:"));
+//
+//  response = awaitSMTPResponse(client, "250", "Identification error");
+//  if (!response.status) return response;
+
+  String helo = "HELO "+String(publicIP)+": ";
+  DEBUG_PRINTLN(helo);
+  client.println(helo);
 
   response = awaitSMTPResponse(client, "250", "Identification error");
   if (!response.status) return response;
 
+  if (useAuth){
+	  DEBUG_PRINTLN(F("AUTH LOGIN:"));
+	  client.println(F("AUTH LOGIN"));
+	  awaitSMTPResponse(client);
 
-  DEBUG_PRINTLN(F("AUTH LOGIN:"));
-  client.println(F("AUTH LOGIN"));
-  awaitSMTPResponse(client);
+	  DEBUG_PRINTLN(encode64(this->email_login));
+	  client.println(encode64(this->email_login));
+	  awaitSMTPResponse(client);
 
-  DEBUG_PRINTLN(encode64(this->email_login));
-  client.println(encode64(this->email_login));
-  awaitSMTPResponse(client);
+	  DEBUG_PRINTLN(encode64(this->email_password));
+	  client.println(encode64(this->email_password));
 
-  DEBUG_PRINTLN(encode64(this->email_password));
-  client.println(encode64(this->email_password));
-
-  response = awaitSMTPResponse(client, "235", "SMTP AUTH error");
-  if (!response.status) return response;
-
+	  response = awaitSMTPResponse(client, "235", "SMTP AUTH error");
+	  if (!response.status) return response;
+  }
   String mailFrom = "MAIL FROM: <" + String(this->email_from) + '>';
   DEBUG_PRINTLN(mailFrom);
   client.println(mailFrom);
@@ -238,11 +252,18 @@ EMailSender::Response EMailSender::send(const char* to, EMailMessage &email)
   client.println(email.subject);
 
   client.println(F("Mime-Version: 1.0"));
-  client.println(F("Content-Type: text/html; charset=\"UTF-8\""));
+  client.print(F("Content-Type: "));
+  client.print(email.mime);
+  client.println("; charset=\"UTF-8\"");
+
+//  client.println(F("Content-Type: text/html; charset=\"UTF-8\""));
   client.println(F("Content-Transfer-Encoding: 7bit"));
   client.println();
-  String body = "<!DOCTYPE html><html lang=\"en\">" + String(email.message) + "</html>";
-  client.println(body);
+  if (email.mime=="text/html"){
+	  String body = "<!DOCTYPE html><html lang=\"en\">" + String(email.message) + "</html>";
+	  client.println(body);
+  }
+  client.println(email.message);
   client.println(".");
 
   response = awaitSMTPResponse(client, "250", "Sending message error");
