@@ -1,5 +1,10 @@
 #include "EMailSender.h"
 
+//#include <SPIFFS.h>
+//#include <LittleFS.h>
+
+//#define SD SPIFFS
+
 // BASE64 -----------------------------------------------------------
 const char PROGMEM b64_alphabet[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                                     "abcdefghijklmnopqrstuvwxyz"
@@ -157,7 +162,39 @@ EMailSender::Response EMailSender::awaitSMTPResponse(EMAIL_NETWORK_CLASS &client
 	return response;
 }
 
-EMailSender::Response EMailSender::send(const char* to, EMailMessage &email, const char* publicIP)
+static const char cb64[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+void encodeblock(unsigned char in[3],unsigned char out[4],int len) {
+ out[0]=cb64[in[0]>>2]; out[1]=cb64[((in[0]&0x03)<<4)|((in[1]&0xF0)>>4)];
+ out[2]=(unsigned char) (len>1 ? cb64[((in[1]&0x0F)<<2)|((in[2]&0xC0)>>6)] : '=');
+ out[3]=(unsigned char) (len>2 ? cb64[in[2]&0x3F] : '=');
+}
+
+void encode(File *file, EMAIL_NETWORK_CLASS *client) {
+ unsigned char in[3],out[4];
+ int i,len,blocksout=0;
+
+ while (file->available()!=0) {
+   len=0;
+     for (i=0;i<3;i++){
+           in[i]=(unsigned char) file->read();
+               if (file->available()!=0) len++;
+                     else in[i]=0;
+     }
+     if (len){
+         encodeblock(in,out,len);
+//         for(i=0;i<4;i++) client->write(out[i]);
+         client->write(out, 4);
+         blocksout++; }
+     if (blocksout>=19||file->available()==0){
+         if (blocksout) {
+        	 client->print("\r\n");
+         }
+         blocksout=0;
+     }
+  }
+}
+
+EMailSender::Response EMailSender::send(const char* to, EMailMessage &email, Attachments attachments, const char* publicIP)
 {
 	EMAIL_NETWORK_CLASS client;
 //	SSLClient client(base_client, TAs, (size_t)TAs_NUM, A5);
@@ -194,18 +231,6 @@ EMailSender::Response EMailSender::send(const char* to, EMailMessage &email, con
   response = awaitSMTPResponse(client, "220", "Connection Error");
   if (!response.status) return response;
 
-
-//  Serial.println(F("Sending hello"));
-//  // replace 1.2.3.4 with your Arduino's ip
-//  client.println("EHLO 1.2.3.4");
-//  if(!eRcv()) return 0;
-
-//  DEBUG_PRINTLN(F("EHLO 192.168.1.138:"));
-//  client.println(F("EHLO 192.168.1.138:"));
-//
-//  response = awaitSMTPResponse(client, "250", "Identification error");
-//  if (!response.status) return response;
-
   String helo = "HELO "+String(publicIP)+": ";
   DEBUG_PRINTLN(helo);
   client.println(helo);
@@ -228,15 +253,30 @@ EMailSender::Response EMailSender::send(const char* to, EMailMessage &email, con
 	  response = awaitSMTPResponse(client, "235", "SMTP AUTH error");
 	  if (!response.status) return response;
   }
-  String mailFrom = "MAIL FROM: <" + String(this->email_from) + '>';
-  DEBUG_PRINTLN(mailFrom);
-  client.println(mailFrom);
+  DEBUG_PRINT(F("MAIL FROM: <"));
+  DEBUG_PRINT(this->email_from);
+  DEBUG_PRINTLN(F(">"));
+
+  client.print(F("MAIL FROM: <"));
+  client.print(this->email_from);
+  client.println(F(">"));
   awaitSMTPResponse(client);
 
-  String rcpt = "RCPT TO: <" + String(to) + '>';
+//  String rcpt = "RCPT TO: <" + String(to) + '>';
+//
+//  DEBUG_PRINTLN(rcpt);
+//  client.println(rcpt);
 
-  DEBUG_PRINTLN(rcpt);
-  client.println(rcpt);
+  DEBUG_PRINT(F("RCPT TO: <"));
+  DEBUG_PRINT(to);
+  DEBUG_PRINTLN(F(">"));
+
+
+  client.print(F("RCPT TO: <"));
+  client.print(to);
+  client.println(F(">"));
+
+
   awaitSMTPResponse(client);
 
   DEBUG_PRINTLN(F("DATA:"));
@@ -245,26 +285,201 @@ EMailSender::Response EMailSender::send(const char* to, EMailMessage &email, con
   response = awaitSMTPResponse(client, "354", "SMTP DATA error");
   if (!response.status) return response;
 
-  client.println("From: <" + String(this->email_from) + '>');
-  client.println("To: <" + String(to) + '>');
+//  client.println("From: <" + String(this->email_from) + '>');
+
+  client.print(F("From: <"));
+  client.print(this->email_from);
+  client.println(F(">"));
+
+//  client.println("To: <" + String(to) + '>');
+
+  client.print(F("To: <"));
+  client.print(to);
+  client.println(">");
 
   client.print(F("Subject: "));
   client.println(email.subject);
 
-  client.println(F("Mime-Version: 1.0"));
-  client.print(F("Content-Type: "));
-  client.print(email.mime);
-  client.println("; charset=\"UTF-8\"");
+//  client.println(F("Mime-Version: 1.0"));
 
+  client.println(F("MIME-Version: 1.0"));
+  client.println(F("Content-Type: Multipart/mixed; boundary=frontier"));
+
+  client.println(F("--frontier"));
+
+    client.print(F("Content-Type: "));
+    client.print(email.mime);
+    client.println(F("; charset=\"UTF-8\""));
 //  client.println(F("Content-Type: text/html; charset=\"UTF-8\""));
   client.println(F("Content-Transfer-Encoding: 7bit"));
   client.println();
-  if (email.mime=="text/html"){
-	  String body = "<!DOCTYPE html><html lang=\"en\">" + String(email.message) + "</html>";
-	  client.println(body);
+  if (email.mime==F("text/html")){
+//	  String body = "<!DOCTYPE html><html lang=\"en\">" + String(email.message) + "</html>";
+
+	  client.print(F("<!DOCTYPE html><html lang=\"en\">"));
+	  client.print(email.message);
+	  client.println(F("</html>"));
+
+//	  client.println(body);
+  }else{
+	  client.println(email.message);
   }
-  client.println(email.message);
-  client.println(".");
+  client.println();
+
+#ifdef SPIFFS_ENABLED
+  bool spiffsActive = false;
+#endif
+#ifdef SD_ENABLED
+  bool sdActive = false;
+#endif
+
+#if defined(ENABLE_ATTACHMENTS) && (defined(SD_ENABLED) || defined(SPIFFS_ENABLED))
+//  if ((sizeof(attachs) / sizeof(attachs[0]))>0){
+  if (sizeof(attachments)>0 && attachments.number>0){
+
+	  DEBUG_PRINT(F("Array: "));
+//	  for (int i = 0; i<(sizeof(attachs) / sizeof(attachs[0])); i++){
+	  for (int i = 0; i<attachments.number; i++){
+		  uint8_t tBuf[64];
+
+		  DEBUG_PRINTLN(attachments.fileDescriptor[i].filename);
+		  client.println(F("--frontier"));
+		  client.print(F("Content-Type: "));
+		  client.print(attachments.fileDescriptor[i].mime);
+		  client.println(F("; charset=\"UTF-8\""));
+
+		  if (attachments.fileDescriptor[i].encode64){
+			  client.println(F("Content-Transfer-Encoding: base64"));
+		  }
+
+		  client.print(F("Content-Disposition: attachment; filename="));
+		  client.print(attachments.fileDescriptor[i].filename);
+		  client.println();
+
+			int clientCount = 0;
+
+#ifdef SPIFFS_ENABLED
+			if (attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_SPIFFS){
+#ifdef OPEN_CLOSE_SPIFFS
+				if(!SPIFFS.begin()){
+						  EMailSender::Response response;
+						  response.code = F("500");
+						  response.desc = F("Error on startup SPIFFS filesystem!");
+						  response.status = false;
+						  return response;
+				    }
+
+				    spiffsActive = true;
+#endif
+
+				fs::File myFile = SPIFFS.open(attachments.fileDescriptor[i].url, "r");
+				  if(myFile) {
+					  if (attachments.fileDescriptor[i].encode64){
+						  encode(&myFile, &client);
+					  }else{
+						while(myFile.available()) {
+						clientCount = myFile.read(tBuf,64);
+						  client.write((byte*)tBuf,clientCount);
+						}
+					  }
+					myFile.close();
+
+					client.println();
+				  }
+				  else {
+					  EMailSender::Response response;
+					  response.code = F("404");
+					  response.desc = "Error opening attachments file "+attachments.fileDescriptor[i].url;
+					  response.status = false;
+					  return response;
+				  }
+
+			}
+#endif
+#ifdef SD_ENABLED
+			if (attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_SD){
+//				File myFile = SD.open(attachments.fileDescriptor[i].url, "r");
+//				  if(myFile) {
+//					while(myFile.available()) {
+//					clientCount = myFile.read(tBuf,64);
+//					  client.write((byte*)tBuf,clientCount);
+//					}
+//					myFile.close();
+//				  }
+//				  else {
+//					  EMailSender::Response response;
+//					  response.code = "404";
+//					  response.desc = "Error opening attachments file "+attachments.fileDescriptor[i].url;
+//					  response.status = false;
+//					  return response;
+//				  }
+#ifdef OPEN_CLOSE_SD
+				 DEBUG_PRINTLN(F("SD Check"));
+			    if(!SD.begin(4)){
+					  response.code = F("500");
+					  response.desc = F("Error on startup SD filesystem!");
+					  response.status = false;
+					  return response;
+			    }
+			    sdActive = true;
+#endif
+
+			    DEBUG_PRINTLN(F("Open file: "));
+			File myFile = SD.open(attachments.fileDescriptor[i].url.c_str());
+			  if(myFile) {
+				  myFile.seek(0);
+				  DEBUG_PRINTLN(F("OK"));
+				  if (attachments.fileDescriptor[i].encode64){
+					  DEBUG_PRINTLN(F("BASE 64"));
+					  encode(&myFile, &client);
+				  }else{
+					  DEBUG_PRINTLN(F("NORMAL"));
+					while(myFile.available()) {
+						clientCount = myFile.read(tBuf,64);
+						client.write((byte*)tBuf,clientCount);
+					}
+				  }
+				myFile.close();
+
+				client.println();
+			  }
+			  else {
+				  response.code = F("404");
+				  response.desc = "Error opening attachments file "+attachments.fileDescriptor[i].url;
+				  response.status = false;
+				  return response;
+			  }
+
+			}
+#endif
+
+	  }
+	  client.println();
+	  client.println(F("--frontier--"));
+#ifdef SD_ENABLED
+	  #ifdef OPEN_CLOSE_SD
+		  if (sdActive){
+			  DEBUG_PRINTLN(F("SD end"));
+			  SD.end();
+			  DEBUG_PRINTLN(F("SD end 2"));
+		  }
+	#endif
+#endif
+
+#ifdef SPIFFS_ENABLED
+	#ifdef OPEN_CLOSE_SPIFFS
+		  if (spiffsActive){
+			  SPIFFS.end();
+		  }
+	#endif
+#endif
+
+  }
+
+#endif
+
+  DEBUG_PRINTLN(F("Message end"));
+  client.println(F("."));
 
   response = awaitSMTPResponse(client, "250", "Sending message error");
   if (!response.status) return response;

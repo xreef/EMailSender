@@ -7,6 +7,17 @@
 #ifndef EMailSender_h
 #define EMailSender_h
 
+// Uncomment if you use esp8266 core <= 2.4.2
+// #define ARDUINO_ESP8266_RELEASE_2_4_2
+
+#define ENABLE_ATTACHMENTS
+
+// Uncomment to enable printing out nice debug messages.
+ #define EMAIL_SENDER_DEBUG
+
+// Define where debug output will be printed.
+#define DEBUG_PRINTER Serial
+
 #define NETWORK_ESP8266_ASYNC (0)
 #define NETWORK_ESP8266 (1)
 #define NETWORK_W5100 (2)
@@ -24,18 +35,36 @@
 #if !defined(EMAIL_NETWORK_TYPE)
 // select Network type based
 #if defined(ESP8266) || defined(ESP31B)
+//#define SPIFFS_ENABLED
 #define EMAIL_NETWORK_TYPE NETWORK_ESP8266
 //#define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP8266_ASYNC
 //#define WEBSOCKETS_NETWORK_TYPE NETWORK_W5100
 
 #elif defined(ESP32)
+//#define SPIFFS_ENABLED
+//#define SD_ENABLED
 #define EMAIL_NETWORK_TYPE NETWORK_ESP32
 //#define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP32_ETH
 #else
-#define EMAIL_NETWORK_TYPE NETWORK_ENC28J60
+	#define EMAIL_NETWORK_TYPE NETWORK_ENC28J60
+//	#define SD_ENABLED
+#endif
+#endif
 
+#if defined(ESP8266) || defined(ESP31B)
+	#define SPIFFS_ENABLED
+
+#ifdef ARDUINO_ESP8266_RELEASE_2_4_2
+	#define SD_ENABLED
 #endif
+
+#elif defined(ESP32)
+	#define SPIFFS_ENABLED
+	#define SD_ENABLED
+#else
+	#define SD_ENABLED
 #endif
+
 
 // Includes and defined based on Network Type
 #if(EMAIL_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
@@ -125,18 +154,27 @@
 #error "no network type selected!"
 #endif
 
+#ifdef ENABLE_ATTACHMENTS
+	#ifdef SPIFFS_ENABLED
+		#if defined(ESP32)
+			#include <SPIFFS.h>
+		#else
+			#define FS_NO_GLOBALS
+			#include "FS.h"
+		#endif
+	#endif
+
+	#ifdef SD_ENABLED
+		#include "SD.h"
+	#endif
+#endif
+
 #ifdef EMAIL_NETWORK_SSL_CLASS
 #define EMAIL_NETWORK_CLASS EMAIL_NETWORK_SSL_CLASS
 #endif
 
-// Uncomment if you use esp8266 core <= 2.4.2
- #define ARDUINO_ESP8266_RELEASE_2_4_2
-
-// Uncomment to enable printing out nice debug messages.
- #define EMAIL_SENDER_DEBUG
-
-// Define where debug output will be printed.
-#define DEBUG_PRINTER Serial
+#define OPEN_CLOSE_SPIFFS
+#define OPEN_CLOSE_SD
 
 // Setup debug printing macros.
 #ifdef EMAIL_SENDER_DEBUG
@@ -153,15 +191,34 @@ public:
 	EMailSender(const char* email_login, const char* email_password, const char* email_from, bool isSecure = false);
 	EMailSender(const char* email_login, const char* email_password, bool isSecure = false);
 
+	enum StorageType {
+		EMAIL_STORAGE_TYPE_SPIFFS,
+		EMAIL_STORAGE_TYPE_SD
+	};
+
+#define MIME_TEXT_HTML F("text/html")
+#define MIME_TEXT_PLAIN F("text/plain")
+#define MIME_IMAGE_JPG F("image/jpg")
+#define MIME_IMAGE_PNG F("image/png")
+
 	typedef struct {
 		String mime = "text/html";
 		String subject;
 		String message;
 	} EMailMessage;
 
-//	typedef struct {
-//		String
-//	} Attach;
+	typedef struct {
+		StorageType storageType = EMAIL_STORAGE_TYPE_SD;
+		String mime;
+		bool encode64 = false;
+		String filename;
+		String url;
+	} FileDescriptior;
+
+	typedef struct {
+		byte number;
+		FileDescriptior *fileDescriptor;
+	} Attachments;
 
 	typedef struct {
 		String code;
@@ -175,7 +232,7 @@ public:
 	void setEMailFrom(const char* email_from);
 	void setEMailPassword(const char* email_password);
 
-	EMailSender::Response send(const char* to, EMailMessage &email,  const char* publicIP = "mischianti");
+	EMailSender::Response send(const char* to, EMailMessage &email, Attachments att = {0}, const char* publicIP = "mischianti");
 
 	void setIsSecure(bool isSecure = false);
 
