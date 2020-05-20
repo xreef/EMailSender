@@ -113,7 +113,7 @@ void setup()
 
     EMailSender::Attachments attachs = {1, fileDescriptor};
 
-    EMailSender::Response resp = emailSend.send("renzo.mischianti@gmail.com", message, attachs);
+    EMailSender::Response resp = emailSend.send("email_to_receive@gmail.com", message, attachs);
 
     Serial.println("Sending status: ");
 

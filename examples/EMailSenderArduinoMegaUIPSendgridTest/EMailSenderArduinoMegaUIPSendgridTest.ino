@@ -49,7 +49,7 @@ void setup()
     message.subject = "Soggetto";
     message.message = "Ciao come stai<br>io bene.<br>www.mischianti.org";
 
-    EMailSender::Response resp = emailSend.send("email_to_send@gmail.com", message);
+    EMailSender::Response resp = emailSend.send("email_to_receive@gmail.com", message);
 
     Serial.println("Sending status: ");
 
