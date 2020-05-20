@@ -1,4 +1,4 @@
-# Library to send EMail via esp8266. 
+# Library to send EMail with attachments via Arduino (support W5100 like, and ENC28J60 via UIPEthernet), esp8266 (SPIFFS and SD) (core <=2.4.2 must be set and >2.4.2) and esp32 (SPIFFS and SD). 
 
 ### [Updated tutorial on my site](https://www.mischianti.org/2019/09/10/send-email-with-esp8266-and-arduino/)
 
@@ -7,7 +7,24 @@
 To download. click the DOWNLOADS button in the top right corner, rename the uncompressed folder EMailSender. Check that the EMailSender folder contains `EMailSender\\.cpp` and `EMailSender.h`. Place the DHT library folder your `<arduinosketchfolder>/libraries/` folder. You may need to create the libraries subfolder if its your first library. Restart the IDE.
 
 # Reef complete EMailSender library to send EMail.
-I try to rationalize a famous library like Gsender. 
+With this library you can send email with attach:
+Arduino
+Network supported
+	- w5100 like shield with Ethernet library
+	- enc28J60 with UIPLibrary
+Storage support
+	- SD
+ 
+esp8266
+you must pay attention, older core from 2.4.2 must be activated
+Storage supported
+	- SD (must be selected for 2.4.2 upper version)
+	- SPIFFS (default for core 2.4.2 upper version)
+
+esp32
+Storage supported
+	- SD
+	- SPIFFS
 
 Constructor:
 Default value is quite simple and use GMail as smtp server. 

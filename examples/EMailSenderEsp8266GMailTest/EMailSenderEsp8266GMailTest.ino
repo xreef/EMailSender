@@ -1,3 +1,11 @@
+/*
+ * EMailSender library for Arduino, esp8266 and esp32
+ * Simple esp8266 Gmail send example
+ *
+ * https://www.mischianti.org
+ *
+ */
+
 #include "Arduino.h"
 #include <EMailSender.h>
 #include <ESP8266WiFi.h>
@@ -64,7 +72,7 @@ void setup()
 
     EMailSender::EMailMessage message;
     message.subject = "Soggetto";
-    message.message = "Ciao come stai<br>io bene.";
+    message.message = "Ciao come stai<br>io bene.<br>www.mischianti.org";
 
     EMailSender::Response resp = emailSend.send("account_to_send@gmail.com", message);
 

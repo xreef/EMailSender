@@ -194,7 +194,7 @@ void encode(File *file, EMAIL_NETWORK_CLASS *client) {
   }
 }
 
-EMailSender::Response EMailSender::send(const char* to, EMailMessage &email, Attachments attachments, const char* publicIP)
+EMailSender::Response EMailSender::send(const char* to, EMailMessage &email, Attachments attachments)
 {
 	EMAIL_NETWORK_CLASS client;
 //	SSLClient client(base_client, TAs, (size_t)TAs_NUM, A5);
@@ -231,7 +231,7 @@ EMailSender::Response EMailSender::send(const char* to, EMailMessage &email, Att
   response = awaitSMTPResponse(client, "220", "Connection Error");
   if (!response.status) return response;
 
-  String helo = "HELO "+String(publicIP)+": ";
+  String helo = "HELO "+String(publicIPDescriptor)+": ";
   DEBUG_PRINTLN(helo);
   client.println(helo);
 
@@ -326,14 +326,14 @@ EMailSender::Response EMailSender::send(const char* to, EMailMessage &email, Att
   }
   client.println();
 
-#ifdef SPIFFS_ENABLED
+#ifdef STORAGE_SPIFFS_ENABLED
   bool spiffsActive = false;
 #endif
-#ifdef SD_ENABLED
+#ifdef STORAGE_SD_ENABLED
   bool sdActive = false;
 #endif
 
-#if defined(ENABLE_ATTACHMENTS) && (defined(SD_ENABLED) || defined(SPIFFS_ENABLED))
+#if defined(ENABLE_ATTACHMENTS) && (defined(STORAGE_SD_ENABLED) || defined(STORAGE_SPIFFS_ENABLED))
 //  if ((sizeof(attachs) / sizeof(attachs[0]))>0){
   if (sizeof(attachments)>0 && attachments.number>0){
 
@@ -358,7 +358,7 @@ EMailSender::Response EMailSender::send(const char* to, EMailMessage &email, Att
 
 			int clientCount = 0;
 
-#ifdef SPIFFS_ENABLED
+#ifdef STORAGE_SPIFFS_ENABLED
 			if (attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_SPIFFS){
 #ifdef OPEN_CLOSE_SPIFFS
 				if(!SPIFFS.begin()){
@@ -396,7 +396,7 @@ EMailSender::Response EMailSender::send(const char* to, EMailMessage &email, Att
 
 			}
 #endif
-#ifdef SD_ENABLED
+#ifdef STORAGE_SD_ENABLED
 			if (attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_SD){
 //				File myFile = SD.open(attachments.fileDescriptor[i].url, "r");
 //				  if(myFile) {
@@ -456,7 +456,7 @@ EMailSender::Response EMailSender::send(const char* to, EMailMessage &email, Att
 	  }
 	  client.println();
 	  client.println(F("--frontier--"));
-#ifdef SD_ENABLED
+#ifdef STORAGE_SD_ENABLED
 	  #ifdef OPEN_CLOSE_SD
 		  if (sdActive){
 			  DEBUG_PRINTLN(F("SD end"));
@@ -466,7 +466,7 @@ EMailSender::Response EMailSender::send(const char* to, EMailMessage &email, Att
 	#endif
 #endif
 
-#ifdef SPIFFS_ENABLED
+#ifdef STORAGE_SPIFFS_ENABLED
 	#ifdef OPEN_CLOSE_SPIFFS
 		  if (spiffsActive){
 			  SPIFFS.end();

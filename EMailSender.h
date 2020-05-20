@@ -1,7 +1,35 @@
-/** \mainpage EMailSender library
+/*
+ * EMail Sender Arduino, esp8266 and esp32 library to send email
  *
- * MIT license
- * written by Renzo Mischianti
+ * AUTHOR:  Renzo Mischianti
+ * VERSION: 2.0.0
+ *
+ * https://www.mischianti.org/
+ *
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2017 Renzo Mischianti www.mischianti.org All right reserved.
+ *
+ * You may copy, alter and reuse this code in any way you like, but please leave
+ * reference to www.mischianti.org in your comments if you redistribute this code.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  */
 
 #ifndef EMailSender_h
@@ -9,6 +37,7 @@
 
 // Uncomment if you use esp8266 core <= 2.4.2
 // #define ARDUINO_ESP8266_RELEASE_2_4_2
+//#define ESP8266_GT_2_4_2_SD_STORAGE_SELECTED
 
 #define ENABLE_ATTACHMENTS
 
@@ -25,6 +54,10 @@
 #define NETWORK_ESP32 (4)
 #define NETWORK_ESP32_ETH (5)
 
+#define DEFAULT_EMAIL_NETWORK_TYPE_ESP8266 	NETWORK_ESP8266
+#define DEFAULT_EMAIL_NETWORK_TYPE_ESP32 	NETWORK_ESP32
+#define DEFAULT_EMAIL_NETWORK_TYPE_ARDUINO 	NETWORK_ENC28J60
+
 #if ARDUINO >= 100
 #include "Arduino.h"
 #else
@@ -34,35 +67,37 @@
 
 #if !defined(EMAIL_NETWORK_TYPE)
 // select Network type based
-#if defined(ESP8266) || defined(ESP31B)
-//#define SPIFFS_ENABLED
-#define EMAIL_NETWORK_TYPE NETWORK_ESP8266
-//#define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP8266_ASYNC
-//#define WEBSOCKETS_NETWORK_TYPE NETWORK_W5100
-
-#elif defined(ESP32)
-//#define SPIFFS_ENABLED
-//#define SD_ENABLED
-#define EMAIL_NETWORK_TYPE NETWORK_ESP32
-//#define WEBSOCKETS_NETWORK_TYPE NETWORK_ESP32_ETH
-#else
-	#define EMAIL_NETWORK_TYPE NETWORK_ENC28J60
-//	#define SD_ENABLED
-#endif
+	#if defined(ESP8266) || defined(ESP31B)
+		//#define STORAGE_SPIFFS_ENABLED
+		#define EMAIL_NETWORK_TYPE DEFAULT_EMAIL_NETWORK_TYPE_ESP8266
+	#elif defined(ESP32)
+		#define EMAIL_NETWORK_TYPE DEFAULT_EMAIL_NETWORK_TYPE_ESP32
+	#else
+		#define EMAIL_NETWORK_TYPE DEFAULT_EMAIL_NETWORK_TYPE_ARDUINO
+	//	#define STORAGE_SD_ENABLED
+	#endif
 #endif
 
 #if defined(ESP8266) || defined(ESP31B)
-	#define SPIFFS_ENABLED
+	#define STORAGE_SPIFFS_ENABLED
 
-#ifdef ARDUINO_ESP8266_RELEASE_2_4_2
-	#define SD_ENABLED
-#endif
+	#ifdef ARDUINO_ESP8266_RELEASE_2_4_2
+		#define STORAGE_SD_ENABLED
+	#else
+
+		#ifdef ESP8266_GT_2_4_2_SD_STORAGE_SELECTED
+			#define STORAGE_SD_ENABLED
+		#else
+			#define STORAGE_SPIFFS_ENABLED
+		#endif
+
+	#endif
 
 #elif defined(ESP32)
-	#define SPIFFS_ENABLED
-	#define SD_ENABLED
+	#define STORAGE_SPIFFS_ENABLED
+	#define STORAGE_SD_ENABLED
 #else
-	#define SD_ENABLED
+	#define STORAGE_SD_ENABLED
 #endif
 
 
@@ -155,7 +190,7 @@
 #endif
 
 #ifdef ENABLE_ATTACHMENTS
-	#ifdef SPIFFS_ENABLED
+	#ifdef STORAGE_SPIFFS_ENABLED
 		#if defined(ESP32)
 			#include <SPIFFS.h>
 		#else
@@ -164,7 +199,7 @@
 		#endif
 	#endif
 
-	#ifdef SD_ENABLED
+	#ifdef STORAGE_SD_ENABLED
 		#include "SD.h"
 	#endif
 #endif
@@ -232,12 +267,16 @@ public:
 	void setEMailFrom(const char* email_from);
 	void setEMailPassword(const char* email_password);
 
-	EMailSender::Response send(const char* to, EMailMessage &email, Attachments att = {0}, const char* publicIP = "mischianti");
+	EMailSender::Response send(const char* to, EMailMessage &email, Attachments att = {0, {}});
 
 	void setIsSecure(bool isSecure = false);
 
 	void setUseAuth(bool useAuth = true) {
 		this->useAuth = useAuth;
+	}
+
+	void setPublicIpDescriptor(const char *publicIpDescriptor = "mischianti") {
+		publicIPDescriptor = publicIpDescriptor;
 	}
 
 private:
@@ -246,6 +285,8 @@ private:
 	char* email_login = 0;
 	char* email_from  = 0;
 	char* email_password = 0;
+
+	const char* publicIPDescriptor = "mischianti";
 
 	bool isSecure = false;
 
