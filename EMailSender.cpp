@@ -81,30 +81,30 @@ const char* encode64_f(char* input, uint8_t len) {
 // END BASE64 ---------------------------------------------------------
 
 EMailSender::EMailSender(const char* email_login, const char* email_password, const char* email_from, // @suppress("Class members should be properly initialized")
-		const char* smtp_server, uint16_t smtp_port, bool isSecure) {
+		const char* smtp_server, uint16_t smtp_port) {
 	this->setEMailLogin(email_login);
 	this->setEMailFrom(email_from);
 	this->setEMailPassword(email_password);
 	this->setSMTPServer(smtp_server);
 	this->setSMTPPort(smtp_port);
 
-	this->isSecure = isSecure;
+//	this->isSecure = isSecure;
 }
 
-EMailSender::EMailSender(const char* email_login, const char* email_password, const char* email_from, bool isSecure) { // @suppress("Class members should be properly initialized")
+EMailSender::EMailSender(const char* email_login, const char* email_password, const char* email_from) { // @suppress("Class members should be properly initialized")
 	this->setEMailLogin(email_login);
 	this->setEMailFrom(email_from);
 	this->setEMailPassword(email_password);
 
-	this->isSecure = isSecure;
+//	this->isSecure = isSecure;
 }
 
-EMailSender::EMailSender(const char* email_login, const char* email_password, bool isSecure){ // @suppress("Class members should be properly initialized")
+EMailSender::EMailSender(const char* email_login, const char* email_password){ // @suppress("Class members should be properly initialized")
 	this->setEMailLogin(email_login);
 	this->setEMailFrom(email_login);
 	this->setEMailPassword(email_password);
 
-	this->isSecure = isSecure;
+//	this->isSecure = isSecure;
 }
 
 void EMailSender::setSMTPPort(uint16_t smtp_port){
@@ -169,6 +169,34 @@ void encodeblock(unsigned char in[3],unsigned char out[4],int len) {
  out[3]=(unsigned char) (len>2 ? cb64[in[2]&0x3F] : '=');
 }
 
+#if (defined(STORAGE_SPIFFS_ENABLED) && defined(FS_NO_GLOBALS))
+		void encode(fs::File *file, EMAIL_NETWORK_CLASS *client) {
+		 unsigned char in[3],out[4];
+		 int i,len,blocksout=0;
+
+		 while (file->available()!=0) {
+		   len=0;
+			 for (i=0;i<3;i++){
+				   in[i]=(unsigned char) file->read();
+					   if (file->available()!=0) len++;
+							 else in[i]=0;
+			 }
+			 if (len){
+				 encodeblock(in,out,len);
+		//         for(i=0;i<4;i++) client->write(out[i]);
+				 client->write(out, 4);
+				 blocksout++; }
+			 if (blocksout>=19||file->available()==0){
+				 if (blocksout) {
+					 client->print("\r\n");
+				 }
+				 blocksout=0;
+			 }
+		  }
+		}
+#endif
+
+#if (defined(STORAGE_SD_ENABLED) || (defined(STORAGE_SPIFFS_ENABLED) && !defined(FS_NO_GLOBALS)))
 void encode(File *file, EMAIL_NETWORK_CLASS *client) {
  unsigned char in[3],out[4];
  int i,len,blocksout=0;
@@ -193,6 +221,7 @@ void encode(File *file, EMAIL_NETWORK_CLASS *client) {
      }
   }
 }
+#endif
 
 EMailSender::Response EMailSender::send(const char* to, EMailMessage &email, Attachments attachments)
 {
@@ -202,7 +231,7 @@ EMailSender::Response EMailSender::send(const char* to, EMailMessage &email, Att
   DEBUG_PRINT(F("Insecure client:"));
   DEBUG_PRINTLN(this->isSecure);
 
-#if (EMAIL_NETWORK_TYPE == NETWORK_ESP8266)
+#if (EMAIL_NETWORK_TYPE == NETWORK_ESP8266 || EMAIL_NETWORK_TYPE == NETWORK_ESP8266_242)
 	#ifndef ARDUINO_ESP8266_RELEASE_2_4_2
 	  if (this->isSecure == false){
 		  client.setInsecure();
@@ -460,7 +489,9 @@ EMailSender::Response EMailSender::send(const char* to, EMailMessage &email, Att
 	  #ifdef OPEN_CLOSE_SD
 		  if (sdActive){
 			  DEBUG_PRINTLN(F("SD end"));
+#ifndef ARDUINO_ESP8266_RELEASE_2_4_2
 			  SD.end();
+#endif
 			  DEBUG_PRINTLN(F("SD end 2"));
 		  }
 	#endif

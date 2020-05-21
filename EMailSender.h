@@ -36,7 +36,7 @@
 #define EMailSender_h
 
 // Uncomment if you use esp8266 core <= 2.4.2
-// #define ARDUINO_ESP8266_RELEASE_2_4_2
+ #define ARDUINO_ESP8266_RELEASE_2_4_2
 //#define ESP8266_GT_2_4_2_SD_STORAGE_SELECTED
 
 #define ENABLE_ATTACHMENTS
@@ -49,14 +49,21 @@
 
 #define NETWORK_ESP8266_ASYNC (0)
 #define NETWORK_ESP8266 (1)
+#define NETWORK_ESP8266_242 (6)
 #define NETWORK_W5100 (2)
 #define NETWORK_ENC28J60 (3)
 #define NETWORK_ESP32 (4)
 #define NETWORK_ESP32_ETH (5)
 
-#define DEFAULT_EMAIL_NETWORK_TYPE_ESP8266 	NETWORK_ESP8266
-#define DEFAULT_EMAIL_NETWORK_TYPE_ESP32 	NETWORK_ESP32
-#define DEFAULT_EMAIL_NETWORK_TYPE_ARDUINO 	NETWORK_ENC28J60
+#ifndef DEFAULT_EMAIL_NETWORK_TYPE_ESP8266
+	#define DEFAULT_EMAIL_NETWORK_TYPE_ESP8266 	NETWORK_ESP8266
+#endif
+#ifndef DEFAULT_EMAIL_NETWORK_TYPE_ESP32
+	#define DEFAULT_EMAIL_NETWORK_TYPE_ESP32 	NETWORK_ESP32
+#endif
+#ifndef DEFAULT_EMAIL_NETWORK_TYPE_ARDUINO
+	#define DEFAULT_EMAIL_NETWORK_TYPE_ARDUINO 	NETWORK_ENC28J60
+#endif
 
 #if ARDUINO >= 100
 #include "Arduino.h"
@@ -64,6 +71,9 @@
 #include "WProgram.h"
 #endif
 
+#if(NETWORK_ESP8266_242 == DEFAULT_EMAIL_NETWORK_TYPE_ESP8266)
+	#define ARDUINO_ESP8266_RELEASE_2_4_2
+#endif
 
 #if !defined(EMAIL_NETWORK_TYPE)
 // select Network type based
@@ -130,7 +140,7 @@
 //#define EMAIL_NETWORK_CLASS AsyncTCPbuffer
 //#define EMAIL_NETWORK_SERVER_CLASS AsyncServer
 
-#elif(EMAIL_NETWORK_TYPE == NETWORK_ESP8266)
+#elif(EMAIL_NETWORK_TYPE == NETWORK_ESP8266 || EMAIL_NETWORK_TYPE == NETWORK_ESP8266_242)
 
 #if !defined(ESP8266) && !defined(ESP31B)
 #error "network type ESP8266 only possible on the ESP mcu!"
@@ -192,6 +202,7 @@
 #ifdef ENABLE_ATTACHMENTS
 	#ifdef STORAGE_SPIFFS_ENABLED
 		#if defined(ESP32)
+//			#define FS_NO_GLOBALS
 			#include <SPIFFS.h>
 		#else
 			#define FS_NO_GLOBALS
@@ -222,9 +233,9 @@
 
 class EMailSender {
 public:
-	EMailSender(const char* email_login, const char* email_password, const char* email_from, const char* smtp_server, uint16_t smtp_port, bool isSecure = false);
-	EMailSender(const char* email_login, const char* email_password, const char* email_from, bool isSecure = false);
-	EMailSender(const char* email_login, const char* email_password, bool isSecure = false);
+	EMailSender(const char* email_login, const char* email_password, const char* email_from, const char* smtp_server, uint16_t smtp_port);
+	EMailSender(const char* email_login, const char* email_password, const char* email_from);
+	EMailSender(const char* email_login, const char* email_password);
 
 	enum StorageType {
 		EMAIL_STORAGE_TYPE_SPIFFS,
@@ -267,7 +278,7 @@ public:
 	void setEMailFrom(const char* email_from);
 	void setEMailPassword(const char* email_password);
 
-	EMailSender::Response send(const char* to, EMailMessage &email, Attachments att = {0, {}});
+	EMailSender::Response send(const char* to, EMailMessage &email, Attachments att = {0});
 
 	void setIsSecure(bool isSecure = false);
 

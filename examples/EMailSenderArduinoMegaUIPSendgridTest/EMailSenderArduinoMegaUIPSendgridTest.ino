@@ -24,7 +24,7 @@
 // Newer Ethernet shields have a MAC address printed on a sticker on the shield
 byte mac[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
 
-EMailSender emailSend("<YOUR-SENDGRID-USER>", "<YOUR-SENDGRID-PASSWD>", "<FROM-EMAIL>", "smtp.sendgrid.net", 25);
+EMailSender emailSend("<YOUR-SENDGRID-API-KEY>", "<YOUR-SENDGRID-PASSWD>", "<FROM-EMAIL>", "smtp.sendgrid.net", 25);
 
 void setup()
 {
