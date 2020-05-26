@@ -10,10 +10,13 @@
 #include <EMailSender.h>
 #include <ESP8266WiFi.h>
 
-    uint8_t connection_state = 0;
-    uint16_t reconnect_interval = 10000;
+const char* ssid = "<YOUR-SSID>";
+const char* password = "<YOUR-PASSWD>";
 
-    EMailSender emailSend("smtp.account@gmail.com", "password");
+uint8_t connection_state = 0;
+uint16_t reconnect_interval = 10000;
+
+EMailSender emailSend("smtp.account@gmail.com", "password");
 
 uint8_t WiFiConnect(const char* nSSID = nullptr, const char* nPassword = nullptr)
 {
@@ -58,13 +61,9 @@ void Awaits()
     }
 }
 
-//The setup function is called once at startup of the sketch
 void setup()
 {
     Serial.begin(115200);
-
-    const char* ssid = "ssid of your AP";
-    const char* password = "password of your AP";
 
     connection_state = WiFiConnect(ssid, password);
     if(!connection_state)  // if not connected to WIFI
@@ -83,8 +82,7 @@ void setup()
     Serial.println(resp.desc);
 }
 
-// The loop function is called in an endless loop
 void loop()
 {
-//Add your repeated code here
+
 }

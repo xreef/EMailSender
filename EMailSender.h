@@ -35,35 +35,7 @@
 #ifndef EMailSender_h
 #define EMailSender_h
 
-// Uncomment if you use esp8266 core <= 2.4.2
- #define ARDUINO_ESP8266_RELEASE_2_4_2
-//#define ESP8266_GT_2_4_2_SD_STORAGE_SELECTED
-
-#define ENABLE_ATTACHMENTS
-
-// Uncomment to enable printing out nice debug messages.
- #define EMAIL_SENDER_DEBUG
-
-// Define where debug output will be printed.
-#define DEBUG_PRINTER Serial
-
-#define NETWORK_ESP8266_ASYNC (0)
-#define NETWORK_ESP8266 (1)
-#define NETWORK_ESP8266_242 (6)
-#define NETWORK_W5100 (2)
-#define NETWORK_ENC28J60 (3)
-#define NETWORK_ESP32 (4)
-#define NETWORK_ESP32_ETH (5)
-
-#ifndef DEFAULT_EMAIL_NETWORK_TYPE_ESP8266
-	#define DEFAULT_EMAIL_NETWORK_TYPE_ESP8266 	NETWORK_ESP8266
-#endif
-#ifndef DEFAULT_EMAIL_NETWORK_TYPE_ESP32
-	#define DEFAULT_EMAIL_NETWORK_TYPE_ESP32 	NETWORK_ESP32
-#endif
-#ifndef DEFAULT_EMAIL_NETWORK_TYPE_ARDUINO
-	#define DEFAULT_EMAIL_NETWORK_TYPE_ARDUINO 	NETWORK_ENC28J60
-#endif
+#include "EMailSenderKey.h"
 
 #if ARDUINO >= 100
 #include "Arduino.h"
@@ -73,13 +45,27 @@
 
 #if(NETWORK_ESP8266_242 == DEFAULT_EMAIL_NETWORK_TYPE_ESP8266)
 	#define ARDUINO_ESP8266_RELEASE_2_4_2
+	#define DEFAULT_EMAIL_NETWORK_TYPE_ESP8266 NETWORK_ESP8266
 #endif
+//
+//#if(NETWORK_ESP8266_SD == DEFAULT_EMAIL_NETWORK_TYPE_ESP8266)
+//	#define ESP8266_GT_2_4_2_SD_STORAGE_SELECTED
+//	#define DEFAULT_EMAIL_NETWORK_TYPE_ESP8266 NETWORK_ESP8266
+//#endif
 
 #if !defined(EMAIL_NETWORK_TYPE)
 // select Network type based
 	#if defined(ESP8266) || defined(ESP31B)
 		//#define STORAGE_SPIFFS_ENABLED
+//		#if(NETWORK_ESP8266_SD == DEFAULT_EMAIL_NETWORK_TYPE_ESP8266)
+//			#define STORAGE_SD_ENABLED_ONLY
+//			#define EMAIL_NETWORK_TYPE NETWORK_ESP8266
+//		#elif(NETWORK_ESP8266_SPIFFS == DEFAULT_EMAIL_NETWORK_TYPE_ESP8266)
+//			#define STORAGE_SPIFFS_ENABLED_ONLY
+//			#define EMAIL_NETWORK_TYPE NETWORK_ESP8266
+//		#else
 		#define EMAIL_NETWORK_TYPE DEFAULT_EMAIL_NETWORK_TYPE_ESP8266
+//		#endif
 	#elif defined(ESP32)
 		#define EMAIL_NETWORK_TYPE DEFAULT_EMAIL_NETWORK_TYPE_ESP32
 	#else
@@ -89,23 +75,19 @@
 #endif
 
 #if defined(ESP8266) || defined(ESP31B)
-	#define STORAGE_SPIFFS_ENABLED
-
-	#ifdef ARDUINO_ESP8266_RELEASE_2_4_2
+	#ifndef STORAGE_SPIFFS_ENABLED_ONLY
 		#define STORAGE_SD_ENABLED
-	#else
-
-		#ifdef ESP8266_GT_2_4_2_SD_STORAGE_SELECTED
-			#define STORAGE_SD_ENABLED
-		#else
-			#define STORAGE_SPIFFS_ENABLED
-		#endif
-
 	#endif
-
+	#ifndef STORAGE_SD_ENABLED_ONLY
+		#define STORAGE_SPIFFS_ENABLED
+	#endif
 #elif defined(ESP32)
-	#define STORAGE_SPIFFS_ENABLED
-	#define STORAGE_SD_ENABLED
+	#ifndef STORAGE_SPIFFS_ENABLED_ONLY
+		#define STORAGE_SD_ENABLED
+	#endif
+	#ifndef STORAGE_SD_ENABLED_ONLY
+		#define STORAGE_SPIFFS_ENABLED
+	#endif
 #else
 	#define STORAGE_SD_ENABLED
 #endif
@@ -205,13 +187,16 @@
 //			#define FS_NO_GLOBALS
 			#include <SPIFFS.h>
 		#else
-			#define FS_NO_GLOBALS
+			#ifdef ARDUINO_ESP8266_RELEASE_2_4_2
+				#define FS_NO_GLOBALS
+			#endif
 			#include "FS.h"
 		#endif
 	#endif
 
 	#ifdef STORAGE_SD_ENABLED
-		#include "SD.h"
+		#include <SPI.h>
+		#include <SD.h>
 	#endif
 #endif
 
