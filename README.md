@@ -1,3 +1,14 @@
+<div>
+<a href="https://www.mischianti.org/forum/forum/xreef-emailsender/"><img
+  src="https://github.com/xreef/LoRa_E32_Series_Library/raw/master/resources/mischaintiForumSupport.png" alt="Support forum e32 English"
+   align="right"></a>
+</div>
+<div>
+<a href="https://www.mischianti.org/forum/forum/xreef-emailsender-2/"><img
+  src="https://github.com/xreef/LoRa_E32_Series_Library/raw/master/resources/buttonSupportoForum.png" alt="Forum supporto e32 italiano"
+  align="right"></a>
+</div>
+
 # Library to send EMail with attachments via Arduino (support W5100 like, and ENC28J60 via UIPEthernet), esp8266 (SPIFFS and SD) (core <=2.4.2 must be set and >2.4.2) and esp32 (SPIFFS and SD). 
 
 ### [Updated tutorial on my site](https://www.mischianti.org/2019/09/10/send-email-with-esp8266-and-arduino/)
