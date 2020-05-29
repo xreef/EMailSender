@@ -1,10 +1,10 @@
 <div>
-<a href="https://www.mischianti.org/forum/forum/xreef-emailsender/"><img
+<a href="https://www.mischianti.org/forum/forum/emailsender-a-library-to-send-email-with-attachments-with-arduino-esp8266-and-esp32/"><img
   src="https://github.com/xreef/LoRa_E32_Series_Library/raw/master/resources/mischaintiForumSupport.png" alt="Support forum e32 English"
    align="right"></a>
 </div>
 <div>
-<a href="https://www.mischianti.org/forum/forum/xreef-emailsender-2/"><img
+<a href="https://www.mischianti.org/forum/forum/emailsender-una-libreria-per-linvio-di-email-con-allegati-per-arduino-esp8266-and-esp32/"><img
   src="https://github.com/xreef/LoRa_E32_Series_Library/raw/master/resources/buttonSupportoForum.png" alt="Forum supporto e32 italiano"
   align="right"></a>
 </div>
