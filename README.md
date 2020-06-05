@@ -1,10 +1,10 @@
 <div>
-<a href="https://www.mischianti.org/forums/forum/english-support-forum/mischiantis-libraries/emailsender-send-email-with-attachments/"><img
+<a href="https://www.mischianti.org/forums/forum/mischiantis-libraries/emailsender-send-email-with-attachments/"><img
   src="https://github.com/xreef/LoRa_E32_Series_Library/raw/master/resources/buttonSupportForumEnglish.png" alt="Support forum EMailSender English"
    align="right"></a>
 </div>
 <div>
-<a href="https://www.mischianti.org/forums/forum/forum-di-supporto-in-italiano/le-librerie-di-mischianti/emailsender-invio-di-email-con-allegati-2/"><img
+<a href="https://www.mischianti.org/it/forums/forum/le-librerie-di-mischianti/emailsender-invio-di-email-con-allegati/"><img
   src="https://github.com/xreef/LoRa_E32_Series_Library/raw/master/resources/buttonSupportForumItaliano.png" alt="Forum supporto EMailSender italiano"
   align="right"></a>
 </div>
