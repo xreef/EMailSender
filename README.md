@@ -1,3 +1,14 @@
+<div>
+<a href="https://www.mischianti.org/forums/forum/mischiantis-libraries/emailsender-send-email-with-attachments/"><img
+  src="https://github.com/xreef/LoRa_E32_Series_Library/raw/master/resources/buttonSupportForumEnglish.png" alt="Support forum EMailSender English"
+   align="right"></a>
+</div>
+<div>
+<a href="https://www.mischianti.org/it/forums/forum/le-librerie-di-mischianti/emailsender-invio-di-email-con-allegati/"><img
+  src="https://github.com/xreef/LoRa_E32_Series_Library/raw/master/resources/buttonSupportForumItaliano.png" alt="Forum supporto EMailSender italiano"
+  align="right"></a>
+</div>
+
 # Library to send EMail via esp8266. 
 
 ### [Updated tutorial on my site](https://www.mischianti.org/2019/09/10/send-email-with-esp8266-and-arduino/)
