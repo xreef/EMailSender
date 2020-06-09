@@ -1,11 +1,22 @@
+/*
+ * EMailSender library for Arduino, esp8266 and esp32
+ * Simple esp8266 Gmail send example
+ *
+ * https://www.mischianti.org
+ *
+ */
+
 #include "Arduino.h"
 #include <EMailSender.h>
 #include <ESP8266WiFi.h>
 
-    uint8_t connection_state = 0;
-    uint16_t reconnect_interval = 10000;
+const char* ssid = "<YOUR-SSID>";
+const char* password = "<YOUR-PASSWD>";
 
-    EMailSender emailSend("smtp.account@gmail.com", "password");
+uint8_t connection_state = 0;
+uint16_t reconnect_interval = 10000;
+
+EMailSender emailSend("smtp.account@gmail.com", "password");
 
 uint8_t WiFiConnect(const char* nSSID = nullptr, const char* nPassword = nullptr)
 {
@@ -50,13 +61,9 @@ void Awaits()
     }
 }
 
-//The setup function is called once at startup of the sketch
 void setup()
 {
     Serial.begin(115200);
-
-    const char* ssid = "ssid of your AP";
-    const char* password = "password of your AP";
 
     connection_state = WiFiConnect(ssid, password);
     if(!connection_state)  // if not connected to WIFI
@@ -64,7 +71,7 @@ void setup()
 
     EMailSender::EMailMessage message;
     message.subject = "Soggetto";
-    message.message = "Ciao come stai<br>io bene.";
+    message.message = "Ciao come stai<br>io bene.<br>www.mischianti.org";
 
     EMailSender::Response resp = emailSend.send("account_to_send@gmail.com", message);
 
@@ -75,8 +82,7 @@ void setup()
     Serial.println(resp.desc);
 }
 
-// The loop function is called in an endless loop
 void loop()
 {
-//Add your repeated code here
+
 }

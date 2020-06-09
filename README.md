@@ -9,16 +9,39 @@
   align="right"></a>
 </div>
 
-# Library to send EMail via esp8266. 
+# Library to send EMail with attachments via Arduino (support W5100 like, and ENC28J60 via UIPEthernet), esp8266 (SPIFFS and SD) (core <=2.4.2 must be set and >2.4.2) and esp32 (SPIFFS and SD). 
 
-### [Updated tutorial on my site](https://www.mischianti.org/2019/09/10/send-email-with-esp8266-and-arduino/)
+### Complete english tutorial
+# [Send email with attachments (EMailSender v2.x library): Arduino Ethernet]()
+# [Send email with attachments (EMailSender v2.x library): esp32 and esp8266]()
+
+### Tutorial completo in italiano
+# [Inviare email con allegati (libreria v2.x): Arduino Ethernet]()
+# [Inviare email con allegati (libreria v2.x): esp32 e esp8266]()
 
 ## Tutorial: 
 
 To download. click the DOWNLOADS button in the top right corner, rename the uncompressed folder EMailSender. Check that the EMailSender folder contains `EMailSender\\.cpp` and `EMailSender.h`. Place the DHT library folder your `<arduinosketchfolder>/libraries/` folder. You may need to create the libraries subfolder if its your first library. Restart the IDE.
 
 # Reef complete EMailSender library to send EMail.
-I try to rationalize a famous library like Gsender. 
+With this library you can send email with attach:
+Arduino
+Network supported
+	- w5100 like shield with Ethernet library
+	- enc28J60 with UIPLibrary
+Storage support
+	- SD
+ 
+esp8266
+you must pay attention, older core from 2.4.2 must be activated
+Storage supported
+	- SD 
+	- SPIFFS 
+
+esp32
+Storage supported
+	- SD
+	- SPIFFS
 
 Constructor:
 Default value is quite simple and use GMail as smtp server. 
@@ -41,9 +64,26 @@ Create a message with the structure EMailMessage
     message.message = "Hi, How are you<br>Fine.";
 ```
 
+Create array of attachments
+```cpp
+// 		Two file
+    EMailSender::FileDescriptior fileDescriptor[2];
+    fileDescriptor[1].filename = F("test.txt");
+    fileDescriptor[1].url = F("/test.txt");
+    fileDescriptor[1].storageType = EMailSender::EMAIL_STORAGE_TYPE_SD;
+
+    fileDescriptor[0].filename = F("logo.jpg");
+    fileDescriptor[0].url = F("/logo.jpg");
+    fileDescriptor[0].mime = "image/jpg";
+    fileDescriptor[0].encode64 = true;
+    fileDescriptor[0].storageType = EMailSender::EMAIL_STORAGE_TYPE_SD;
+
+    EMailSender::Attachments attachs = {2, fileDescriptor};
+```
+
 Send message:
 ```cpp
-    EMailSender::Response resp = emailSend.send("account_to_send@gmail.com", message);
+    EMailSender::Response resp = emailSend.send("account_to_send@gmail.com", message, attachs);
 ```
 
 Then check the response:
