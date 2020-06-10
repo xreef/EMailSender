@@ -9,7 +9,8 @@
   align="right"></a>
 </div>
 
-# Library to send EMail with attachments via Arduino (support W5100 like, and ENC28J60 via UIPEthernet), esp8266 (SPIFFS and SD) (core <=2.4.2 must be set and >2.4.2) and esp32 (SPIFFS and SD). 
+# Library to send EMail with attachments 
+###via Arduino (support W5100 like must be set, and ENC28J60 via UIPEthernet), esp8266 (SPIFFS and SD) (core <=2.4.2 must be set) and esp32 (SPIFFS and SD). 
 
 ### Complete english tutorial
 #### [Send email with attachments (EMailSender v2.x library): Arduino Ethernet](https://www.mischianti.org/category/my-libraries/emailsender-send-email-with-attachments/)
