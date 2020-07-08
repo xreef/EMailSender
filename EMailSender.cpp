@@ -153,7 +153,7 @@ EMailSender::Response EMailSender::awaitSMTPResponse(EMAIL_NETWORK_CLASS &client
 	DEBUG_PRINTLN(_serverResponce);
 	if (resp && _serverResponce.indexOf(resp) == -1){
 		response.code = resp;
-		response.desc = respDesc;
+		response.desc = respDesc +String(" (") + _serverResponce + String(")");
 		response.status = false;
 		return response;
 	}
