@@ -9,8 +9,14 @@
   align="right"></a>
 </div>
 
+
+
+
+
+
+
 # Library to send EMail with attachments 
-###via Arduino (support W5100 like must be set, and ENC28J60 via UIPEthernet), esp8266 (SPIFFS and SD) (core <=2.4.2 must be set) and esp32 (SPIFFS and SD). 
+### Arduino (support W5100 like must be set, and ENC28J60 via UIPEthernet), esp8266 (SPIFFS and SD) (core <=2.4.2 must be set) and esp32 (SPIFFS and SD). 
 
 ### Complete english tutorial
 #### [Send email with attachments (EMailSender v2.x library): Arduino Ethernet](https://www.mischianti.org/category/my-libraries/emailsender-send-email-with-attachments/)
@@ -20,11 +26,16 @@
 ### [Inviare email con allegati (libreria v2.x): Arduino Ethernet](https://www.mischianti.org/it/category/le-mie-librerie/emailsender-inviare-email-con-allegati/)
 ### [Inviare email con allegati (libreria v2.x): esp32 e esp8266](https://www.mischianti.org/it/category/le-mie-librerie/emailsender-inviare-email-con-allegati/)
 
-## Tutorial: 
+## Installation Tutorial: 
 
-To download. click the DOWNLOADS button in the top right corner, rename the uncompressed folder EMailSender. Check that the EMailSender folder contains `EMailSender\\.cpp` and `EMailSender.h`. Place the DHT library folder your `<arduinosketchfolder>/libraries/` folder. You may need to create the libraries subfolder if its your first library. Restart the IDE.
+To download. 
+click the DOWNLOADS button in the top right corner, rename the uncompressed folder EMailSender. 
+Check that the EMailSender folder contains `EMailSender\\.cpp` and `EMailSender.h`. 
+Place the EMailSender library folder your `<arduinosketchfolder>/libraries/` folder. 
+You may need to create the libraries subfolder if its your first library. 
+Restart the IDE.
 
-# Reef complete EMailSender library to send EMail.
+# EMailSender library to send EMail.
 With this library you can send email with attach:
 Arduino
 Network supported
