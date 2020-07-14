@@ -10,7 +10,7 @@
  * for standard Ethernet
  *
  *
- * https://www.mischianti.org
+ * https://www.mischianti.org/category/my-libraries/emailsender-send-email-with-attachments/
  *
  */
 

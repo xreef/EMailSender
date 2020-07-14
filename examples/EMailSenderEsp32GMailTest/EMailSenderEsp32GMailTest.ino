@@ -2,7 +2,7 @@
  * EMailSender library for Arduino, esp8266 and esp32
  * Simple esp32 Gmail send example
  *
- * https://www.mischianti.org
+ * https://www.mischianti.org/category/my-libraries/emailsender-send-email-with-attachments/
  *
  */
 

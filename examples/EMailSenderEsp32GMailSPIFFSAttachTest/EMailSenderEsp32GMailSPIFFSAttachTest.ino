@@ -4,7 +4,7 @@
  *
  * The base64 encoding of the image is slow, so be patient
  *
- * https://www.mischianti.org
+ * https://www.mischianti.org/category/my-libraries/emailsender-send-email-with-attachments/
  *
  */
 
