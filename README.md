@@ -11,9 +11,9 @@
 
 
 
-
-
-
+#
+#
+#
 
 # Library to send EMail with attachments 
 ### Arduino (support W5100 like must be set, and ENC28J60 via UIPEthernet), esp8266 (SPIFFS and SD) (core <=2.4.2 must be set) and esp32 (SPIFFS and SD). 
