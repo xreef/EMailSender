@@ -223,7 +223,23 @@ void encode(File *file, EMAIL_NETWORK_CLASS *client) {
 }
 #endif
 
-EMailSender::Response EMailSender::send(const char* to, EMailMessage &email, Attachments attachments)
+EMailSender::Response EMailSender::send(const char* to, EMailMessage &email, Attachments attachments){
+	  DEBUG_PRINT(F("ONLY ONE RECIPIENT"));
+
+	const char* arrEmail[] =  {to};
+	return send(arrEmail, 1, email, attachments);
+}
+
+EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo, EMailMessage &email, Attachments attachments) {
+	return send(to, sizeOfTo, 0, email, attachments);
+}
+
+EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte sizeOfCc,  EMailMessage &email, Attachments attachments)
+{
+	return send(to, sizeOfTo, sizeOfCc, 0, email, attachments);
+}
+
+EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte sizeOfCc,byte sizeOfCCn, EMailMessage &email, Attachments attachments)
 {
 	EMAIL_NETWORK_CLASS client;
 //	SSLClient client(base_client, TAs, (size_t)TAs_NUM, A5);
@@ -296,17 +312,17 @@ EMailSender::Response EMailSender::send(const char* to, EMailMessage &email, Att
 //  DEBUG_PRINTLN(rcpt);
 //  client.println(rcpt);
 
-  DEBUG_PRINT(F("RCPT TO: <"));
-  DEBUG_PRINT(to);
-  DEBUG_PRINTLN(F(">"));
+  int cont;
+  for (cont=0;cont<(sizeOfTo+sizeOfCc+sizeOfCCn);cont++){
+	  DEBUG_PRINT(F("RCPT TO: <"));
+	  DEBUG_PRINT(to[cont]);
+	  DEBUG_PRINTLN(F(">"));
 
-
-  client.print(F("RCPT TO: <"));
-  client.print(to);
-  client.println(F(">"));
-
-
-  awaitSMTPResponse(client);
+	  client.print(F("RCPT TO: <"));
+	  client.print(to[cont]);
+	  client.println(F(">"));
+	  awaitSMTPResponse(client);
+  }
 
   DEBUG_PRINTLN(F("DATA:"));
   client.println(F("DATA"));
@@ -322,9 +338,42 @@ EMailSender::Response EMailSender::send(const char* to, EMailMessage &email, Att
 
 //  client.println("To: <" + String(to) + '>');
 
-  client.print(F("To: <"));
-  client.print(to);
-  client.println(">");
+  client.print(F("To: "));
+  for (cont=0;cont<sizeOfTo;cont++){
+	  client.print(F("<"));
+	  client.print(to[cont]);
+	  client.print(">");
+	  if (cont!=sizeOfTo-1){
+		  client.print(",");
+	  }
+  }
+  client.println();
+
+  if (sizeOfCc>0){
+	  client.print(F("Cc: "));
+	  for (;cont<sizeOfTo+sizeOfCc;cont++){
+		  client.print(F("<"));
+		  client.print(to[cont]);
+		  client.print(">");
+		  if (cont!=sizeOfCc-1){
+			  client.print(",");
+		  }
+	  }
+	  client.println();
+  }
+
+  if (sizeOfCCn>0){
+	  client.print(F("CCn: "));
+	  for (;cont<sizeOfTo+sizeOfCc+sizeOfCCn;cont++){
+		  client.print(F("<"));
+		  client.print(to[cont]);
+		  client.print(">");
+		  if (cont!=sizeOfCCn-1){
+			  client.print(",");
+		  }
+	  }
+	  client.println();
+  }
 
   client.print(F("Subject: "));
   client.println(email.subject);
