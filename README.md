@@ -105,6 +105,8 @@ Then check the response:
     Serial.println(resp.status);
 ```
 
+From version 2.1.1 new features distribution list to send CC and CCn email.
+
 Example output:
 
 ```cpp
