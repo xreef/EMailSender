@@ -263,10 +263,10 @@ public:
 	void setEMailFrom(const char* email_from);
 	void setEMailPassword(const char* email_password);
 
-	EMailSender::Response send(const char* to, EMailMessage &email, Attachments att = {0});
-	EMailSender::Response send(const char* to[], byte sizeOfTo, EMailMessage &email, Attachments att = {0});
-	EMailSender::Response send(const char* to[], byte sizeOfTo,  byte sizeOfCc, EMailMessage &email, Attachments att = {0});
-	EMailSender::Response send(const char* to[], byte sizeOfTo,  byte sizeOfCc, byte sizeOfCCn, EMailMessage &email, Attachments att = {0});
+	EMailSender::Response send(const char* to, EMailMessage &email, Attachments att = {0, 0});
+	EMailSender::Response send(const char* to[], byte sizeOfTo, EMailMessage &email, Attachments att = {0, 0});
+	EMailSender::Response send(const char* to[], byte sizeOfTo,  byte sizeOfCc, EMailMessage &email, Attachments att = {0, 0});
+	EMailSender::Response send(const char* to[], byte sizeOfTo,  byte sizeOfCc, byte sizeOfCCn, EMailMessage &email, Attachments att = {0, 0});
 
 	void setIsSecure(bool isSecure = false);
 

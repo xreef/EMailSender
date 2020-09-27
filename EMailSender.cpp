@@ -432,7 +432,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 
 		  client.print(F("Content-Disposition: attachment; filename="));
 		  client.print(attachments.fileDescriptor[i].filename);
-		  client.println();
+		  client.println("\n");
 
 			int clientCount = 0;
 
