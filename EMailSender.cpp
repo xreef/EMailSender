@@ -439,15 +439,18 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 #ifdef STORAGE_SPIFFS_ENABLED
 			if (attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_SPIFFS){
 #ifdef OPEN_CLOSE_SPIFFS
-				if(!SPIFFS.begin()){
+				if (!SPIFFS.exists(attachments.fileDescriptor[i].url)){
+					if(!SPIFFS.begin()){
 						  EMailSender::Response response;
 						  response.code = F("500");
 						  response.desc = F("Error on startup SPIFFS filesystem!");
 						  response.status = false;
 						  return response;
-				    }
+					}
 
-				    spiffsActive = true;
+					spiffsActive = true;
+					DEBUG_PRINTLN("SPIFFS BEGIN, ACTIVE");
+				}
 #endif
 
 				fs::File myFile = SPIFFS.open(attachments.fileDescriptor[i].url, "r");
@@ -493,13 +496,15 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 //				  }
 #ifdef OPEN_CLOSE_SD
 				 DEBUG_PRINTLN(F("SD Check"));
-			    if(!SD.begin(4)){
-					  response.code = F("500");
-					  response.desc = F("Error on startup SD filesystem!");
-					  response.status = false;
-					  return response;
-			    }
-			    sdActive = true;
+				 if (!SD.exists(attachments.fileDescriptor[i].url.c_str())){
+					if(!SD.begin(4)){
+						  response.code = F("500");
+						  response.desc = F("Error on startup SD filesystem!");
+						  response.status = false;
+						  return response;
+					}
+					sdActive = true;
+				 }
 #endif
 
 			    DEBUG_PRINTLN(F("Open file: "));
@@ -550,6 +555,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 	#ifdef OPEN_CLOSE_SPIFFS
 		  if (spiffsActive){
 			  SPIFFS.end();
+			  DEBUG_PRINTLN(F("SPIFFS END"));
 		  }
 	#endif
 #endif
