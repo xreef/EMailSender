@@ -16,6 +16,7 @@ setSMTPPort	KEYWORD2
 setSMTPServer	KEYWORD2
 setEMailLogin	KEYWORD2
 setEMailFrom	KEYWORD2
+setNameFrom	KEYWORD2
 setEMailPassword	KEYWORD2
 setIsSecure		KEYWORD2
 setUseAuth		KEYWORD2

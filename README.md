@@ -25,6 +25,9 @@
 ### [Inviare email con allegati (libreria v2.x): Arduino Ethernet](https://www.mischianti.org/it/category/le-mie-librerie/emailsender-inviare-email-con-allegati/)
 ### [Inviare email con allegati (libreria v2.x): esp32 e esp8266](https://www.mischianti.org/it/category/le-mie-librerie/emailsender-inviare-email-con-allegati/)
 
+## Change log
+23/11/2020: v2.1.3 Add management of name on EMail from 
+
 ## Installation Tutorial: 
 
 To download. 

@@ -80,7 +80,17 @@ const char* encode64_f(char* input, uint8_t len) {
 
 // END BASE64 ---------------------------------------------------------
 
-EMailSender::EMailSender(const char* email_login, const char* email_password, const char* email_from, // @suppress("Class members should be properly initialized")
+EMailSender::EMailSender(const char* email_login, const char* email_password, const char* email_from, const char* name_from ,
+		const char* smtp_server, uint16_t smtp_port) {
+	this->setEMailLogin(email_login);
+	this->setEMailFrom(email_from);
+	this->setEMailPassword(email_password);
+	this->setSMTPServer(smtp_server);
+	this->setSMTPPort(smtp_port);
+	this->setNameFrom(name_from);
+//	this->isSecure = isSecure;
+}
+EMailSender::EMailSender(const char* email_login, const char* email_password, const char* email_from,
 		const char* smtp_server, uint16_t smtp_port) {
 	this->setEMailLogin(email_login);
 	this->setEMailFrom(email_from);
@@ -91,7 +101,16 @@ EMailSender::EMailSender(const char* email_login, const char* email_password, co
 //	this->isSecure = isSecure;
 }
 
-EMailSender::EMailSender(const char* email_login, const char* email_password, const char* email_from) { // @suppress("Class members should be properly initialized")
+EMailSender::EMailSender(const char* email_login, const char* email_password, const char* email_from, const char* name_from ) {
+	this->setEMailLogin(email_login);
+	this->setEMailFrom(email_from);
+	this->setEMailPassword(email_password);
+	this->setNameFrom(name_from);
+	this->setNameFrom(name_from);
+
+//	this->isSecure = isSecure;
+}
+EMailSender::EMailSender(const char* email_login, const char* email_password, const char* email_from) {
 	this->setEMailLogin(email_login);
 	this->setEMailFrom(email_from);
 	this->setEMailPassword(email_password);
@@ -99,7 +118,7 @@ EMailSender::EMailSender(const char* email_login, const char* email_password, co
 //	this->isSecure = isSecure;
 }
 
-EMailSender::EMailSender(const char* email_login, const char* email_password){ // @suppress("Class members should be properly initialized")
+EMailSender::EMailSender(const char* email_login, const char* email_password){
 	this->setEMailLogin(email_login);
 	this->setEMailFrom(email_login);
 	this->setEMailPassword(email_password);
@@ -125,6 +144,11 @@ void EMailSender::setEMailFrom(const char* email_from){
 	delete [] this->email_from;
 	this->email_from = new char[strlen(email_from)+1];
 	strcpy(this->email_from, email_from);
+};
+void EMailSender::setNameFrom(const char* name_from){
+	delete [] this->name_from;
+	this->name_from = new char[strlen(name_from)+1];
+	strcpy(this->name_from, name_from);
 };
 void EMailSender::setEMailPassword(const char* email_password){
 	delete [] this->email_password;
@@ -332,7 +356,11 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 
 //  client.println("From: <" + String(this->email_from) + '>');
 
-  client.print(F("From: <"));
+  client.print(F("From: "));
+  if (this->name_from){
+	  client.print(this->name_from);
+  }
+  client.print(F(" <"));
   client.print(this->email_from);
   client.println(F(">"));
 
