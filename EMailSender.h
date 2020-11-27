@@ -266,10 +266,19 @@ public:
 	void setNameFrom(const char* name_from);
 	void setEMailPassword(const char* email_password);
 
+	EMailSender::Response send(char* to[], byte sizeOfTo, EMailMessage &email, Attachments att = {0, 0});
+	EMailSender::Response send(char* to[], byte sizeOfTo,  byte sizeOfCc, EMailMessage &email, Attachments att = {0, 0});
+	EMailSender::Response send(char* to[], byte sizeOfTo,  byte sizeOfCc, byte sizeOfCCn, EMailMessage &email, Attachments att = {0, 0});
+
 	EMailSender::Response send(const char* to, EMailMessage &email, Attachments att = {0, 0});
 	EMailSender::Response send(const char* to[], byte sizeOfTo, EMailMessage &email, Attachments att = {0, 0});
 	EMailSender::Response send(const char* to[], byte sizeOfTo,  byte sizeOfCc, EMailMessage &email, Attachments att = {0, 0});
 	EMailSender::Response send(const char* to[], byte sizeOfTo,  byte sizeOfCc, byte sizeOfCCn, EMailMessage &email, Attachments att = {0, 0});
+
+	EMailSender::Response send(String to, EMailMessage &email, Attachments att = {0, 0});
+	EMailSender::Response send(String to[], byte sizeOfTo, EMailMessage &email, Attachments att = {0, 0});
+	EMailSender::Response send(String to[], byte sizeOfTo,  byte sizeOfCc, EMailMessage &email, Attachments att = {0, 0});
+	EMailSender::Response send(String to[], byte sizeOfTo,  byte sizeOfCc, byte sizeOfCCn, EMailMessage &email, Attachments att = {0, 0});
 
 	void setIsSecure(bool isSecure = false);
 

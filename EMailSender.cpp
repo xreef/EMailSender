@@ -247,6 +247,57 @@ void encode(File *file, EMAIL_NETWORK_CLASS *client) {
 }
 #endif
 
+const char** toCharArray(String arr[], int num) {
+    // If we ever alloc with new with have to delete
+    const char** buffer = new const char*[num];
+
+    for(int i = 0; i < num; i++) {
+        buffer[i] = arr[i].c_str();
+    }
+
+    return buffer;
+}
+const char** toCharArray(char* arr[], int num) {
+    // If we ever alloc with new with have to delete
+    const char** buffer = new const char*[num];
+
+    for(int i = 0; i < num; i++) {
+        buffer[i] = arr[i];
+    }
+
+    return buffer;
+}
+
+EMailSender::Response EMailSender::send(char* tos[], byte sizeOfTo, EMailMessage &email, Attachments attachments) {
+	return send(toCharArray(tos, sizeOfTo), sizeOfTo, 0, 0, email, attachments);
+}
+EMailSender::Response EMailSender::send(char* tos[], byte sizeOfTo,  byte sizeOfCc,  EMailMessage &email, Attachments attachments) {
+	return send(toCharArray(tos, sizeOfTo+sizeOfCc), sizeOfTo, sizeOfCc, 0, email, attachments);
+}
+EMailSender::Response EMailSender::send(char* tos[], byte sizeOfTo,  byte sizeOfCc,byte sizeOfCCn, EMailMessage &email, Attachments attachments){
+	return send(toCharArray(tos, sizeOfTo+sizeOfCc+sizeOfCCn), sizeOfTo, sizeOfCc, sizeOfCCn, email, attachments);
+}
+
+
+EMailSender::Response EMailSender::send(String to, EMailMessage &email, Attachments attachments){
+	  DEBUG_PRINT(F("ONLY ONE RECIPIENT"));
+
+	const char* arrEmail[] =  {to.c_str()};
+	return send(arrEmail, 1, email, attachments);
+}
+
+EMailSender::Response EMailSender::send(String tos[], byte sizeOfTo, EMailMessage &email, Attachments attachments) {
+	return send(toCharArray(tos, sizeOfTo), sizeOfTo, 0, 0, email, attachments);
+}
+
+EMailSender::Response EMailSender::send(String tos[], byte sizeOfTo,  byte sizeOfCc,  EMailMessage &email, Attachments attachments) {
+	return send(toCharArray(tos, sizeOfTo+sizeOfCc), sizeOfTo, sizeOfCc, 0, email, attachments);
+}
+
+EMailSender::Response EMailSender::send(String tos[], byte sizeOfTo,  byte sizeOfCc,byte sizeOfCCn, EMailMessage &email, Attachments attachments){
+	return send(toCharArray(tos, sizeOfTo+sizeOfCc+sizeOfCCn), sizeOfTo, sizeOfCc, sizeOfCCn, email, attachments);
+}
+
 EMailSender::Response EMailSender::send(const char* to, EMailMessage &email, Attachments attachments){
 	  DEBUG_PRINT(F("ONLY ONE RECIPIENT"));
 

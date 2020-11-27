@@ -26,6 +26,9 @@
 ### [Inviare email con allegati (libreria v2.x): esp32 e esp8266](https://www.mischianti.org/it/category/le-mie-librerie/emailsender-inviare-email-con-allegati/)
 
 ## Change log
+27/11/2020: v2.1.4 Add more constructor to allow more structure for distribution list (now const char*, char* and String array are supported)
+
+## Change log
 23/11/2020: v2.1.3 Add management of name on EMail from 
 
 ## Installation Tutorial: 
