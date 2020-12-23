@@ -351,7 +351,11 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
   response = awaitSMTPResponse(client, "220", "Connection Error");
   if (!response.status) return response;
 
-  String helo = "HELO "+String(publicIPDescriptor)+": ";
+  String commandHELO = "HELO";
+  if (this->useEHLO == true) {
+	  commandHELO = "EHLO";
+  }
+  String helo = commandHELO + " "+String(publicIPDescriptor)+": ";
   DEBUG_PRINTLN(helo);
   client.println(helo);
 
@@ -359,17 +363,28 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
   if (!response.status) return response;
 
   if (useAuth){
-	  DEBUG_PRINTLN(F("AUTH LOGIN:"));
-	  client.println(F("AUTH LOGIN"));
-	  awaitSMTPResponse(client);
+	  if (this->isSASLLogin == true){
+	      char * logPass = (char *) malloc(1 + strlen(this->email_login)+ strlen(this->email_password)+1 );
+	      strcpy(logPass, this->email_login);
+	      strcat(logPass, " ");
+	      strcat(logPass, this->email_password);
 
-	  DEBUG_PRINTLN(encode64(this->email_login));
-	  client.println(encode64(this->email_login));
-	  awaitSMTPResponse(client);
 
-	  DEBUG_PRINTLN(encode64(this->email_password));
-	  client.println(encode64(this->email_password));
+		  String auth = "AUTH PLAIN "+String(encode64(logPass));
+		  DEBUG_PRINTLN(auth);
+		  client.println(auth);
+	  }else{
+		  DEBUG_PRINTLN(F("AUTH LOGIN:"));
+		  client.println(F("AUTH LOGIN"));
+		  awaitSMTPResponse(client);
 
+		  DEBUG_PRINTLN(encode64(this->email_login));
+		  client.println(encode64(this->email_login));
+		  awaitSMTPResponse(client);
+
+		  DEBUG_PRINTLN(encode64(this->email_password));
+		  client.println(encode64(this->email_password));
+	  }
 	  response = awaitSMTPResponse(client, "235", "SMTP AUTH error");
 	  if (!response.status) return response;
   }

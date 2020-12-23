@@ -290,6 +290,13 @@ public:
 		publicIPDescriptor = publicIpDescriptor;
 	}
 
+	void setEHLOCommand(bool useEHLO = false) {
+		this->useEHLO = useEHLO;
+	}
+
+	void setSASLLogin(bool isSASLLogin = false) {
+		this->isSASLLogin = isSASLLogin;
+	}
 private:
 	uint16_t smtp_port = 465;
 	char* smtp_server = strdup("smtp.gmail.com");
@@ -301,6 +308,9 @@ private:
 	const char* publicIPDescriptor = "mischianti";
 
 	bool isSecure = false;
+
+	bool useEHLO = false;
+	bool isSASLLogin = false;
 
 	bool useAuth = true;
 
