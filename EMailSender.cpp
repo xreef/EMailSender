@@ -385,7 +385,6 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 	      strcat(logPass, "\0");
 	      strcat(logPass, this->email_password);
 
-
 		  String auth = "AUTH PLAIN "+String(encode64(logPass));
 		  DEBUG_PRINTLN(auth);
 		  client.println(auth);
