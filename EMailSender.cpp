@@ -362,15 +362,18 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
   response = awaitSMTPResponse(client, "250", "Identification error");
   if (!response.status) return response;
 
+  if (this->useEHLO == true) {
+	  awaitSMTPResponse(client);
+	  awaitSMTPResponse(client);
+	  awaitSMTPResponse(client);
+	  awaitSMTPResponse(client);
+	  awaitSMTPResponse(client);
+	  awaitSMTPResponse(client);
+	  awaitSMTPResponse(client);
+  }
+
   if (useAuth){
 	  if (this->isSASLLogin == true){
-		  awaitSMTPResponse(client);
-		  awaitSMTPResponse(client);
-		  awaitSMTPResponse(client);
-		  awaitSMTPResponse(client);
-		  awaitSMTPResponse(client);
-		  awaitSMTPResponse(client);
-		  awaitSMTPResponse(client);
 
 	      char * logPass = (char *) malloc(1 + strlen(this->email_login)+ strlen(this->email_password)+2 );
 	      strcpy(logPass, " ");
