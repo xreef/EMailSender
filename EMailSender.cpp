@@ -376,14 +376,14 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 	  if (this->isSASLLogin == true){
 
 	      char * logPass = (char *) malloc(1 + strlen(this->email_login)+ strlen(this->email_password)+2 );
-	      strcpy(logPass, " ");
-	      strcat(logPass, this->email_login);
-	      strcat(logPass, " ");
-	      strcat(logPass, this->email_password);
-//	      strcpy(logPass, "\0");
+//	      strcpy(logPass, " ");
 //	      strcat(logPass, this->email_login);
-//	      strcat(logPass, "\0");
+//	      strcat(logPass, " ");
 //	      strcat(logPass, this->email_password);
+	      strcpy(logPass, "\0");
+	      strcat(logPass, this->email_login);
+	      strcat(logPass, "\0");
+	      strcat(logPass, this->email_password);
 
 
 		  String auth = "AUTH PLAIN "+String(encode64(logPass));
