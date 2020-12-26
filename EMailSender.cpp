@@ -375,19 +375,36 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
   if (useAuth){
 	  if (this->isSASLLogin == true){
 
-	      char * logPass = (char *) malloc(1 + strlen(this->email_login)+ strlen(this->email_password)+2 );
+		  int size = 1 + strlen(this->email_login)+ strlen(this->email_password)+2;
+	      char * logPass = (char *) malloc(size);
 
 //	      strcpy(logPass, " ");
 //	      strcat(logPass, this->email_login);
 //	      strcat(logPass, " ");
 //	      strcat(logPass, this->email_password);
 
-	      strcpy(logPass, "\0");
-	      strcat(logPass, this->email_login);
-	      strcat(logPass, "\0");
-	      strcat(logPass, this->email_password);
+//		  String logPass;
+	      int maincont = 0;
 
-		  String auth = "AUTH PLAIN "+String(encode64(logPass));
+	      logPass[maincont++] = ' ';
+	      logPass[maincont++] = (char) 0;
+
+	      for (int i = 0;i<strlen(this->email_login);i++){
+	    	  logPass[maincont++] = this->email_login[i];
+	      }
+	      logPass[maincont++] = (char) 0;
+	      for (int i = 0;i<strlen(this->email_password);i++){
+	    	  logPass[maincont++] = this->email_password[i];
+	      }
+
+
+//	      strcpy(logPass, "\0");
+//	      strcat(logPass, this->email_login);
+//	      strcat(logPass, "\0");
+//	      strcat(logPass, this->email_password);
+
+		  String auth = "AUTH PLAIN "+String(encode64_f(logPass, size));
+//		  String auth = "AUTH PLAIN "+String(encode64(logPass));
 		  DEBUG_PRINTLN(auth);
 		  client.println(auth);
 	  }else{
