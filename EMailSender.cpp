@@ -363,13 +363,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
   if (!response.status) return response;
 
   if (this->useEHLO == true) {
-	  awaitSMTPResponse(client);
-	  awaitSMTPResponse(client);
-	  awaitSMTPResponse(client);
-	  awaitSMTPResponse(client);
-	  awaitSMTPResponse(client);
-	  awaitSMTPResponse(client);
-	  awaitSMTPResponse(client);
+	  for (int i = 0; i<=6; i++) awaitSMTPResponse(client);
   }
 
   if (useAuth){

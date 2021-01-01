@@ -26,6 +26,8 @@ Arduino (support W5100 like must be set, and ENC28J60 via UIPEthernet), esp8266 
 #### [Inviare email con allegati (libreria v2.x): esp32 e esp8266](https://www.mischianti.org/it/2020/06/16/inviare-email-con-allegati-libreria-v2-x-esp32-e-esp8266-part-2/)
 
 ## Change log
+01/01/2021: v2.1.5 Add possibility to use EHLO instead of HELO, and SASL login.
+
 27/11/2020: v2.1.4 Add more constructor to allow more structure for distribution list (now const char*, char* and String array are supported)
 
 23/11/2020: v2.1.3 Add management of name on EMail from 
