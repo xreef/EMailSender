@@ -21,5 +21,7 @@ setEMailPassword	KEYWORD2
 setIsSecure		KEYWORD2
 setUseAuth		KEYWORD2
 setPublicIpDescriptor	KEYWORD2
+setEHLOCommand	KEYWORD2
+setSASLLogin	KEYWORD2
 
 send	KEYWORD2

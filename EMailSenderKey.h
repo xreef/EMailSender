@@ -1,3 +1,36 @@
+/*
+ * EMail Sender Arduino, esp8266 and esp32 library to send email
+ *
+ * AUTHOR:  Renzo Mischianti
+ * VERSION: 2.2.0
+ *
+ * https://www.mischianti.org/
+ *
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2017 Renzo Mischianti www.mischianti.org All right reserved.
+ *
+ * You may copy, alter and reuse this code in any way you like, but please leave
+ * reference to www.mischianti.org in your comments if you redistribute this code.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 #ifndef EMailSenderKey_h
 #define EMailSenderKey_h
 
@@ -19,6 +52,7 @@
 #define NETWORK_ENC28J60 (3)
 #define NETWORK_ESP32 (4)
 #define NETWORK_ESP32_ETH (5)
+#define NETWORK_WiFiNINA (7)
 
 #ifndef DEFAULT_EMAIL_NETWORK_TYPE_ESP8266
 	#define DEFAULT_EMAIL_NETWORK_TYPE_ESP8266 	NETWORK_ESP8266
@@ -28,6 +62,9 @@
 #endif
 #ifndef DEFAULT_EMAIL_NETWORK_TYPE_ARDUINO
 	#define DEFAULT_EMAIL_NETWORK_TYPE_ARDUINO 	NETWORK_ENC28J60
+#endif
+#ifndef DEFAULT_EMAIL_NETWORK_TYPE_ARDUINO_SAMD
+	#define DEFAULT_EMAIL_NETWORK_TYPE_SAMD 	NETWORK_WiFiNINA
 #endif
 
 #endif

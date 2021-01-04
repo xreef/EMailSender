@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 2.0.0
+ * VERSION: 2.2.0
  *
  * https://www.mischianti.org/
  *
@@ -56,18 +56,11 @@
 #if !defined(EMAIL_NETWORK_TYPE)
 // select Network type based
 	#if defined(ESP8266) || defined(ESP31B)
-		//#define STORAGE_SPIFFS_ENABLED
-//		#if(NETWORK_ESP8266_SD == DEFAULT_EMAIL_NETWORK_TYPE_ESP8266)
-//			#define STORAGE_SD_ENABLED_ONLY
-//			#define EMAIL_NETWORK_TYPE NETWORK_ESP8266
-//		#elif(NETWORK_ESP8266_SPIFFS == DEFAULT_EMAIL_NETWORK_TYPE_ESP8266)
-//			#define STORAGE_SPIFFS_ENABLED_ONLY
-//			#define EMAIL_NETWORK_TYPE NETWORK_ESP8266
-//		#else
 		#define EMAIL_NETWORK_TYPE DEFAULT_EMAIL_NETWORK_TYPE_ESP8266
-//		#endif
 	#elif defined(ESP32)
 		#define EMAIL_NETWORK_TYPE DEFAULT_EMAIL_NETWORK_TYPE_ESP32
+	#elif defined(ARDUINO_ARCH_SAMD)
+		#define EMAIL_NETWORK_TYPE DEFAULT_EMAIL_NETWORK_TYPE_SAMD
 	#else
 		#define EMAIL_NETWORK_TYPE DEFAULT_EMAIL_NETWORK_TYPE_ARDUINO
 	//	#define STORAGE_SD_ENABLED
@@ -75,21 +68,23 @@
 #endif
 
 #if defined(ESP8266) || defined(ESP31B)
-	#ifndef STORAGE_SPIFFS_ENABLED_ONLY
+	#ifndef STORAGE_SD_FORCE_DISABLE
 		#define STORAGE_SD_ENABLED
 	#endif
-	#ifndef STORAGE_SD_ENABLED_ONLY
+	#ifndef STORAGE_SPIFFS_FORCE_DISABLE
 		#define STORAGE_SPIFFS_ENABLED
 	#endif
 #elif defined(ESP32)
-	#ifndef STORAGE_SPIFFS_ENABLED_ONLY
+	#ifndef STORAGE_SD_FORCE_DISABLE
 		#define STORAGE_SD_ENABLED
 	#endif
-	#ifndef STORAGE_SD_ENABLED_ONLY
+	#ifndef STORAGE_SPIFFS_FORCE_DISABLE
 		#define STORAGE_SPIFFS_ENABLED
 	#endif
 #else
-	#define STORAGE_SD_ENABLED
+	#ifndef STORAGE_SD_FORCE_DISABLE
+		#define STORAGE_SD_ENABLED
+	#endif
 #endif
 
 
@@ -175,6 +170,13 @@
 
 #include <ETH.h>
 #define EMAIL_NETWORK_CLASS WiFiClient
+#define EMAIL_NETWORK_SERVER_CLASS WiFiServer
+
+#elif(EMAIL_NETWORK_TYPE == NETWORK_WiFiNINA)
+
+#include <WiFiNINA.h>
+#define EMAIL_NETWORK_CLASS WiFiSSLClient
+#define EMAIL_NETWORK_SSL_CLASS WiFiSSLClient
 #define EMAIL_NETWORK_SERVER_CLASS WiFiServer
 
 #else

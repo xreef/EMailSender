@@ -15,7 +15,7 @@
 #
 
 # Library to send EMail with attachments 
-Arduino (support W5100 like must be set, and ENC28J60 via UIPEthernet), esp8266 (SPIFFS and SD) (core <=2.4.2 must be set) and esp32 (SPIFFS and SD). 
+Arduino (support W5100 like must be set, and ENC28J60 via UIPEthernet), esp8266 (SPIFFS and SD) (core <=2.4.2 must be set) and esp32 (SPIFFS and SD), Arduino WiFiNINA SAMD devices Arduino MKR WiFi 1010, Vidor 4000 UNO WiFi Rev.2 (SD). 
 
 ### Complete english tutorial
 #### [Send email with attachments (EMailSender v2.x library): Arduino Ethernet](https://www.mischianti.org/2020/06/09/send-email-with-attachments-v2-x-library-arduino-ethernet-part-1/)
@@ -26,6 +26,8 @@ Arduino (support W5100 like must be set, and ENC28J60 via UIPEthernet), esp8266 
 #### [Inviare email con allegati (libreria v2.x): esp32 e esp8266](https://www.mischianti.org/it/2020/06/16/inviare-email-con-allegati-libreria-v2-x-esp32-e-esp8266-part-2/)
 
 ## Change log
+02/01/2021: v2.2.0 New support for SAMD devices via WiFiNINA (Arduino MKR WiFi 1010, Arduino Vidor 4000 and Arduino UNO WiFi Rev.2).
+
 01/01/2021: v2.1.5 Add possibility to use EHLO instead of HELO, and SASL login.
 
 27/11/2020: v2.1.4 Add more constructor to allow more structure for distribution list (now const char*, char* and String array are supported)
