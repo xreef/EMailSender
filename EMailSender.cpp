@@ -340,6 +340,7 @@ EMailSender::Response EMailSender::send(const char* to, EMailMessage &email, Att
 }
 
 EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo, EMailMessage &email, Attachments attachments) {
+	DEBUG_PRINTLN(F("miltiple destination and attachments"));
 	return send(to, sizeOfTo, 0, email, attachments);
 }
 
@@ -417,11 +418,11 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 	      logPass[maincont++] = ' ';
 	      logPass[maincont++] = (char) 0;
 
-	      for (int i = 0;i<strlen(this->email_login);i++){
+	      for (unsigned int i = 0;i<strlen(this->email_login);i++){
 	    	  logPass[maincont++] = this->email_login[i];
 	      }
 	      logPass[maincont++] = (char) 0;
-	      for (int i = 0;i<strlen(this->email_password);i++){
+	      for (unsigned int i = 0;i<strlen(this->email_password);i++){
 	    	  logPass[maincont++] = this->email_password[i];
 	      }
 
@@ -653,7 +654,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 #ifdef OPEN_CLOSE_SD
 				 DEBUG_PRINTLN(F("SD Check"));
 				 if (!SD.exists(attachments.fileDescriptor[i].url.c_str())){
-					if(!SD.begin(4)){
+					if(!SD.begin(SD_CS_PIN)){
 						  response.code = F("500");
 						  response.desc = F("Error on startup SD filesystem!");
 						  response.status = false;
