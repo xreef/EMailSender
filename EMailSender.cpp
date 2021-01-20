@@ -227,58 +227,60 @@ void encodeblock(unsigned char in[3],unsigned char out[4],int len) {
  out[3]=(unsigned char) (len>2 ? cb64[in[2]&0x3F] : '=');
 }
 
-#if (defined(STORAGE_SPIFFS_ENABLED) && defined(FS_NO_GLOBALS))
-		void encode(fs::File *file, EMAIL_NETWORK_CLASS *client) {
-		 unsigned char in[3],out[4];
-		 int i,len,blocksout=0;
+#ifdef ENABLE_ATTACHMENTS
+	#if (defined(STORAGE_SPIFFS_ENABLED) && defined(FS_NO_GLOBALS))
+			void encode(fs::File *file, EMAIL_NETWORK_CLASS *client) {
+			 unsigned char in[3],out[4];
+			 int i,len,blocksout=0;
 
-		 while (file->available()!=0) {
-		   len=0;
-			 for (i=0;i<3;i++){
-				   in[i]=(unsigned char) file->read();
-					   if (file->available()!=0) len++;
-							 else in[i]=0;
-			 }
-			 if (len){
-				 encodeblock(in,out,len);
-		//         for(i=0;i<4;i++) client->write(out[i]);
-				 client->write(out, 4);
-				 blocksout++; }
-			 if (blocksout>=19||file->available()==0){
-				 if (blocksout) {
-					 client->print("\r\n");
+			 while (file->available()!=0) {
+			   len=0;
+				 for (i=0;i<3;i++){
+					   in[i]=(unsigned char) file->read();
+						   if (file->available()!=0) len++;
+								 else in[i]=0;
 				 }
-				 blocksout=0;
+				 if (len){
+					 encodeblock(in,out,len);
+			//         for(i=0;i<4;i++) client->write(out[i]);
+					 client->write(out, 4);
+					 blocksout++; }
+				 if (blocksout>=19||file->available()==0){
+					 if (blocksout) {
+						 client->print("\r\n");
+					 }
+					 blocksout=0;
+				 }
+			  }
+			}
+	#endif
+
+	#if (defined(STORAGE_SD_ENABLED) || (defined(STORAGE_SPIFFS_ENABLED) && !defined(FS_NO_GLOBALS)))
+	void encode(File *file, EMAIL_NETWORK_CLASS *client) {
+	 unsigned char in[3],out[4];
+	 int i,len,blocksout=0;
+
+	 while (file->available()!=0) {
+	   len=0;
+		 for (i=0;i<3;i++){
+			   in[i]=(unsigned char) file->read();
+				   if (file->available()!=0) len++;
+						 else in[i]=0;
+		 }
+		 if (len){
+			 encodeblock(in,out,len);
+	//         for(i=0;i<4;i++) client->write(out[i]);
+			 client->write(out, 4);
+			 blocksout++; }
+		 if (blocksout>=19||file->available()==0){
+			 if (blocksout) {
+				 client->print("\r\n");
 			 }
-		  }
-		}
-#endif
-
-#if (defined(STORAGE_SD_ENABLED) || (defined(STORAGE_SPIFFS_ENABLED) && !defined(FS_NO_GLOBALS)))
-void encode(File *file, EMAIL_NETWORK_CLASS *client) {
- unsigned char in[3],out[4];
- int i,len,blocksout=0;
-
- while (file->available()!=0) {
-   len=0;
-     for (i=0;i<3;i++){
-           in[i]=(unsigned char) file->read();
-               if (file->available()!=0) len++;
-                     else in[i]=0;
-     }
-     if (len){
-         encodeblock(in,out,len);
-//         for(i=0;i<4;i++) client->write(out[i]);
-         client->write(out, 4);
-         blocksout++; }
-     if (blocksout>=19||file->available()==0){
-         if (blocksout) {
-        	 client->print("\r\n");
-         }
-         blocksout=0;
-     }
-  }
-}
+			 blocksout=0;
+		 }
+	  }
+	}
+	#endif
 #endif
 
 const char** toCharArray(String arr[], int num) {

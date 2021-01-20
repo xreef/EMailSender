@@ -242,6 +242,7 @@ public:
 		String message;
 	} EMailMessage;
 
+#ifdef ENABLE_ATTACHMENTS
 	typedef struct {
 		StorageType storageType = EMAIL_STORAGE_TYPE_SD;
 		String mime;
@@ -254,6 +255,12 @@ public:
 		byte number;
 		FileDescriptior *fileDescriptor;
 	} Attachments;
+#else
+	typedef struct {
+		char* noop1;
+		char* noop2;
+	} Attachments;
+#endif
 
 	typedef struct {
 		String code;
