@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 2.2.0
+ * VERSION: 2.3.0
  *
  * https://www.mischianti.org/
  *
@@ -228,7 +228,7 @@ void encodeblock(unsigned char in[3],unsigned char out[4],int len) {
 }
 
 #ifdef ENABLE_ATTACHMENTS
-	#if (defined(STORAGE_SPIFFS_ENABLED) && defined(FS_NO_GLOBALS))
+	#if (defined(STORAGE_INTERNAL_ENABLED) && defined(FS_NO_GLOBALS))
 			void encode(fs::File *file, EMAIL_NETWORK_CLASS *client) {
 			 unsigned char in[3],out[4];
 			 int i,len,blocksout=0;
@@ -255,7 +255,7 @@ void encodeblock(unsigned char in[3],unsigned char out[4],int len) {
 			}
 	#endif
 
-	#if (defined(STORAGE_SD_ENABLED) || (defined(STORAGE_SPIFFS_ENABLED) && !defined(FS_NO_GLOBALS)))
+	#if (defined(STORAGE_SD_ENABLED) || (defined(STORAGE_INTERNAL_ENABLED) && !defined(FS_NO_GLOBALS)))
 	void encode(File *file, EMAIL_NETWORK_CLASS *client) {
 	 unsigned char in[3],out[4];
 	 int i,len,blocksout=0;
@@ -376,6 +376,9 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 #endif
 
   EMailSender::Response response;
+
+  DEBUG_PRINTLN(this->smtp_server);
+  DEBUG_PRINTLN(this->smtp_port);
 
   if(!client.connect(this->smtp_server, this->smtp_port)) {
 	  response.desc = F("Could not connect to mail server");
@@ -563,14 +566,14 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
   }
   client.println();
 
-#ifdef STORAGE_SPIFFS_ENABLED
+#ifdef STORAGE_INTERNAL_ENABLED
   bool spiffsActive = false;
 #endif
 #ifdef STORAGE_SD_ENABLED
   bool sdActive = false;
 #endif
 
-#if defined(ENABLE_ATTACHMENTS) && (defined(STORAGE_SD_ENABLED) || defined(STORAGE_SPIFFS_ENABLED))
+#if defined(ENABLE_ATTACHMENTS) && (defined(STORAGE_SD_ENABLED) || defined(STORAGE_INTERNAL_ENABLED))
 //  if ((sizeof(attachs) / sizeof(attachs[0]))>0){
   if (sizeof(attachments)>0 && attachments.number>0){
 
@@ -595,11 +598,12 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 
 			int clientCount = 0;
 
-#ifdef STORAGE_SPIFFS_ENABLED
-			if (attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_SPIFFS){
-#ifdef OPEN_CLOSE_SPIFFS
-				if (!SPIFFS.exists(attachments.fileDescriptor[i].url)){
-					if(!SPIFFS.begin()){
+#ifdef STORAGE_INTERNAL_ENABLED
+			if (attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_SPIFFS ||
+				attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_LITTLE_FS){
+#ifdef OPEN_CLOSE_INTERNAL
+				if (!INTERNAL_STORAGE_CLASS.exists(attachments.fileDescriptor[i].url)){
+					if(!INTERNAL_STORAGE_CLASS.begin()){
 						  EMailSender::Response response;
 						  response.code = F("500");
 						  response.desc = F("Error on startup SPIFFS filesystem!");
@@ -612,7 +616,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 				}
 #endif
 
-				fs::File myFile = SPIFFS.open(attachments.fileDescriptor[i].url, "r");
+				fs::File myFile = INTERNAL_STORAGE_CLASS.open(attachments.fileDescriptor[i].url, "r");
 				  if(myFile) {
 					  if (attachments.fileDescriptor[i].encode64){
 						  encode(&myFile, &client);
@@ -710,10 +714,10 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 	#endif
 #endif
 
-#ifdef STORAGE_SPIFFS_ENABLED
-	#ifdef OPEN_CLOSE_SPIFFS
+#ifdef STORAGE_INTERNAL_ENABLED
+	#ifdef OPEN_CLOSE_INTERNAL
 		  if (spiffsActive){
-			  SPIFFS.end();
+			  INTERNAL_STORAGE_CLASS.end();
 			  DEBUG_PRINTLN(F("SPIFFS END"));
 		  }
 	#endif

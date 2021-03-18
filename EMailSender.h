@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 2.2.0
+ * VERSION: 2.3.0
  *
  * https://www.mischianti.org/
  *
@@ -71,15 +71,15 @@
 	#ifndef STORAGE_SD_FORCE_DISABLE
 		#define STORAGE_SD_ENABLED
 	#endif
-	#ifndef STORAGE_SPIFFS_FORCE_DISABLE
-		#define STORAGE_SPIFFS_ENABLED
+	#ifndef STORAGE_INTERNAL_FORCE_DISABLE
+		#define STORAGE_INTERNAL_ENABLED
 	#endif
 #elif defined(ESP32)
 	#ifndef STORAGE_SD_FORCE_DISABLE
 		#define STORAGE_SD_ENABLED
 	#endif
-	#ifndef STORAGE_SPIFFS_FORCE_DISABLE
-		#define STORAGE_SPIFFS_ENABLED
+	#ifndef STORAGE_INTERNAL_FORCE_DISABLE
+		#define STORAGE_INTERNAL_ENABLED
 	#endif
 #else
 	#ifndef STORAGE_SD_FORCE_DISABLE
@@ -184,15 +184,24 @@
 #endif
 
 #ifdef ENABLE_ATTACHMENTS
-	#ifdef STORAGE_SPIFFS_ENABLED
+	#ifdef STORAGE_INTERNAL_ENABLED
 		#if defined(ESP32)
 //			#define FS_NO_GLOBALS
 			#include <SPIFFS.h>
+
+			#define INTERNAL_STORAGE_CLASS SPIFFS
 		#else
-			#ifdef ARDUINO_ESP8266_RELEASE_2_4_2
-				#define FS_NO_GLOBALS
+			#if (DEFAULT_INTERNAL_ESP8266_STORAGE == STORAGE_SPIFFS)
+				#ifdef ARDUINO_ESP8266_RELEASE_2_4_2
+					#define FS_NO_GLOBALS
+				#endif
+				#include "FS.h"
+
+				#define INTERNAL_STORAGE_CLASS SPIFFS
+			#elif (DEFAULT_INTERNAL_ESP8266_STORAGE == STORAGE_LITTLEFS)
+				#include "LittleFS.h"
+				#define INTERNAL_STORAGE_CLASS LittleFS
 			#endif
-			#include "FS.h"
 		#endif
 	#endif
 
@@ -206,7 +215,7 @@
 #define EMAIL_NETWORK_CLASS EMAIL_NETWORK_SSL_CLASS
 #endif
 
-#define OPEN_CLOSE_SPIFFS
+#define OPEN_CLOSE_INTERNAL
 #define OPEN_CLOSE_SD
 
 // Setup debug printing macros.
@@ -228,6 +237,7 @@ public:
 
 	enum StorageType {
 		EMAIL_STORAGE_TYPE_SPIFFS,
+		EMAIL_STORAGE_TYPE_LITTLE_FS,
 		EMAIL_STORAGE_TYPE_SD
 	};
 
