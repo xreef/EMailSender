@@ -93,6 +93,7 @@ void setup()
     fileDescriptor[1].filename = F("test.txt");
     fileDescriptor[1].url = F("/test.txt");
     fileDescriptor[1].storageType = EMailSender::EMAIL_STORAGE_TYPE_SPIFFS;
+    fileDescriptor[1].mime = MIME_TEXT_PLAIN;
 
     fileDescriptor[0].filename = F("logo.jpg");
     fileDescriptor[0].url = F("/logo.jpg");

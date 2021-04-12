@@ -373,6 +373,19 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 		  }
 	  }
 	#endif
+#elif (EMAIL_NETWORK_TYPE == NETWORK_ESP32)
+//	  String coreVersion = String(ESP.getSdkVersion());
+//	  uint8_t firstdot = coreVersion.indexOf('.');
+//
+//	  DEBUG_PRINTLN(coreVersion.substring(1, coreVersion.indexOf('.', firstdot+1)).toFloat());
+//	  DEBUG_PRINTLN(coreVersion.substring(1, coreVersion.indexOf('.', firstdot+1)).toFloat() >= 3.3f);
+//	  if (coreVersion.substring(1, coreVersion.indexOf('.', firstdot+1)).toFloat() >= 3.3f) {
+//		  client.setInsecure();
+//	  }
+	#include <core_version.h>
+	#if ((!defined(ARDUINO_ESP32_RELEASE_1_0_4)) && (!defined(ARDUINO_ESP32_RELEASE_1_0_3)) && (!defined(ARDUINO_ESP32_RELEASE_1_0_2)))
+		  client.setInsecure();
+	#endif
 #endif
 
   EMailSender::Response response;
@@ -582,10 +595,36 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 	  for (int i = 0; i<attachments.number; i++){
 		  uint8_t tBuf[64];
 
+		  if (attachments.fileDescriptor[i].url.length()==0){
+			  EMailSender::Response response;
+			  response.code = F("400");
+			  response.desc = "Error no filename specified for the file "+attachments.fileDescriptor[i].filename;
+			  response.status = false;
+			  return response;
+		  }
+		  if (attachments.fileDescriptor[i].mime.length()==0){
+			  EMailSender::Response response;
+			  response.code = F("400");
+			  response.desc = "Error no mime type specified for the file "+attachments.fileDescriptor[i].url;
+			  response.status = false;
+			  return response;
+		  }
+		  if (attachments.fileDescriptor[i].filename.length()==0){
+			  EMailSender::Response response;
+			  response.code = F("400");
+			  response.desc = "Error no filename specified for the file "+attachments.fileDescriptor[i].url;
+			  response.status = false;
+			  return response;
+		  }
+
 		  DEBUG_PRINTLN(attachments.fileDescriptor[i].filename);
+		  DEBUG_PRINTLN(F("--frontier"));
 		  client.println(F("--frontier"));
+		  DEBUG_PRINTLN(F("Content-Type: "));
 		  client.print(F("Content-Type: "));
+		  DEBUG_PRINTLN(attachments.fileDescriptor[i].mime);
 		  client.print(attachments.fileDescriptor[i].mime);
+		  DEBUG_PRINTLN(F("; charset=\"UTF-8\""));
 		  client.println(F("; charset=\"UTF-8\""));
 
 		  if (attachments.fileDescriptor[i].encode64){
@@ -594,19 +633,20 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 
 		  client.print(F("Content-Disposition: attachment; filename="));
 		  client.print(attachments.fileDescriptor[i].filename);
-		  client.println("\n");
+		  client.println(F("\n"));
 
 			int clientCount = 0;
 
 #ifdef STORAGE_INTERNAL_ENABLED
 			if (attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_SPIFFS ||
-				attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_LITTLE_FS){
+				attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_LITTLE_FS ||
+				attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_FFAT){
 #ifdef OPEN_CLOSE_INTERNAL
 				if (!INTERNAL_STORAGE_CLASS.exists(attachments.fileDescriptor[i].url)){
 					if(!INTERNAL_STORAGE_CLASS.begin()){
 						  EMailSender::Response response;
 						  response.code = F("500");
-						  response.desc = F("Error on startup SPIFFS filesystem!");
+						  response.desc = F("Error on startup filesystem!");
 						  response.status = false;
 						  return response;
 					}
@@ -618,11 +658,13 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 
 				fs::File myFile = INTERNAL_STORAGE_CLASS.open(attachments.fileDescriptor[i].url, "r");
 				  if(myFile) {
+//					  DEBUG_PRINTLN(myFile.name());
 					  if (attachments.fileDescriptor[i].encode64){
 						  encode(&myFile, &client);
 					  }else{
 						while(myFile.available()) {
 						clientCount = myFile.read(tBuf,64);
+						DEBUG_PRINTLN(clientCount);
 						  client.write((byte*)tBuf,clientCount);
 						}
 					  }

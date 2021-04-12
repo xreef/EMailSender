@@ -15,7 +15,7 @@
 #
 
 # Library to send EMail with attachments 
-Arduino (support W5100 like must be set, and ENC28J60 via UIPEthernet), esp8266 (SPIFFS, LittleFS and SD) (core <=2.4.2 must be set) and esp32 (SPIFFS and SD), Arduino WiFiNINA SAMD devices (Arduino MKR WiFi 1010, Vidor 4000 UNO WiFi Rev.2 ecc.) (SD). 
+Arduino (support W5100 like must be set, and ENC28J60 via UIPEthernet), esp8266 (SPIFFS, LittleFS and SD) (core <=2.4.2 must be set) and esp32 (SPIFFS, LITTLEFS, Ffat and SD), Arduino WiFiNINA SAMD devices (Arduino MKR WiFi 1010, Vidor 4000 UNO WiFi Rev.2 ecc.) (SD). 
 
 ### Complete english tutorial
 #### [Send email with attachments (EMailSender v2.x library): Arduino Ethernet](https://www.mischianti.org/2020/06/09/send-email-with-attachments-v2-x-library-arduino-ethernet-part-1/)
@@ -26,6 +26,8 @@ Arduino (support W5100 like must be set, and ENC28J60 via UIPEthernet), esp8266 
 #### [Inviare email con allegati (libreria v2.x): esp32 e esp8266](https://www.mischianti.org/it/2020/06/16/inviare-email-con-allegati-libreria-v2-x-esp32-e-esp8266-part-2/)
 
 ## Change log
+12/04/2021: v2.4.1 Add support for LITTLEFS and Ffat on esp32 and fix certificate verification from esp32 core 1.0.5 
+
 18/03/2021: v2.3.0 Add support for LittleFS on esp8266
 
 02/01/2021: v2.2.0 New support for SAMD devices via WiFiNINA (Arduino MKR WiFi 1010, Arduino Vidor 4000 and Arduino UNO WiFi Rev.2 ecc.).
@@ -65,6 +67,8 @@ esp32
 Storage supported
 	- SD
 	- SPIFFS
+	- LITTLEFS
+	- Ffat
 
 Constructor:
 Default value is quite simple and use GMail as smtp server. 
@@ -93,6 +97,7 @@ Create array of attachments
     EMailSender::FileDescriptior fileDescriptor[2];
     fileDescriptor[1].filename = F("test.txt");
     fileDescriptor[1].url = F("/test.txt");
+    fileDescriptor[1].mime = MIME_TEXT_PLAIN;
     fileDescriptor[1].storageType = EMailSender::EMAIL_STORAGE_TYPE_SD;
 
     fileDescriptor[0].filename = F("logo.jpg");

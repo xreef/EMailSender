@@ -86,6 +86,8 @@ void setup()
 //    EMailSender::FileDescriptior fileDescriptor[2];
 //    fileDescriptor[1].filename = F("test.txt");
 //    fileDescriptor[1].url = F("/test.txt");
+//    fileDescriptor[1].mime = MIME_TEXT_PLAIN;
+
 //    fileDescriptor[1].storageType = EMailSender::EMAIL_STORAGE_TYPE_SD;
 //
 //    fileDescriptor[0].filename = F("logo.jpg");
