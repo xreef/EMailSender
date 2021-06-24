@@ -627,7 +627,10 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 		  DEBUG_PRINTLN(F("; charset=\"UTF-8\""));
 		  client.println(F("; charset=\"UTF-8\""));
 
-		  if (attachments.fileDescriptor[i].encode64){
+		  if (attachments.fileDescriptor[i].contentTransferEncoding.length()>0){
+			  client.print(F("Content-Transfer-Encoding: "));
+			  client.println(attachments.fileDescriptor[i].contentTransferEncoding);
+		  } else if (attachments.fileDescriptor[i].encode64){
 			  client.println(F("Content-Transfer-Encoding: base64"));
 		  }
 

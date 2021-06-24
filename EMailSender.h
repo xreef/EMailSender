@@ -265,6 +265,7 @@ public:
 		StorageType storageType = EMAIL_STORAGE_TYPE_SD;
 		String mime;
 		bool encode64 = false;
+		String contentTransferEncoding;
 		String filename;
 		String url;
 	} FileDescriptior;
