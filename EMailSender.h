@@ -218,9 +218,9 @@
 	#endif
 #endif
 
-#ifdef EMAIL_NETWORK_SSL_CLASS
-#define EMAIL_NETWORK_CLASS EMAIL_NETWORK_SSL_CLASS
-#endif
+//#ifdef EMAIL_NETWORK_SSL_CLASS
+//#define EMAIL_NETWORK_CLASS EMAIL_NETWORK_SSL_CLASS
+//#endif
 
 #define OPEN_CLOSE_INTERNAL
 #define OPEN_CLOSE_SD
@@ -344,7 +344,8 @@ private:
 
     String _serverResponce;
 
-    Response awaitSMTPResponse(EMAIL_NETWORK_CLASS &client, const char* resp = "", const char* respDesc = "", uint16_t timeOut = 10000);
+    Response awaitSMTPResponse(EMAIL_NETWORK_SSL_CLASS &client, const char* resp = "", const char* respDesc = "", uint16_t timeOut = 10000);
+    Response awaitSMTPResponseInsecure(EMAIL_NETWORK_CLASS &client, const char* resp = "", const char* respDesc = "", uint16_t timeOut = 10000);
 };
 
 #endif

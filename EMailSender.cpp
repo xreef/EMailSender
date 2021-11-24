@@ -34,6 +34,16 @@
 
 #include "EMailSender.h"
 #include<stdio.h>
+#include <lwip/err.h>
+#include <lwip/sockets.h>
+#include <lwip/sys.h>
+#include <lwip/netdb.h>
+#include <mbedtls/sha256.h>
+#include <mbedtls/oid.h>
+#include "mbedtls/ctr_drbg.h"
+
+#include <algorithm>
+
 //#include <SPIFFS.h>
 //#include <LittleFS.h>
 
@@ -194,7 +204,33 @@ void EMailSender::setIsSecure(bool isSecure) {
 	this->isSecure = isSecure;
 }
 
-EMailSender::Response EMailSender::awaitSMTPResponse(EMAIL_NETWORK_CLASS &client,
+EMailSender::Response EMailSender::awaitSMTPResponse(EMAIL_NETWORK_SSL_CLASS &client,
+		const char* resp, const char* respDesc, uint16_t timeOut) {
+	EMailSender::Response response;
+	uint32_t ts = millis();
+	while (!client.available()) {
+		if (millis() > (ts + timeOut)) {
+			response.code = F("1");
+			response.desc = F("SMTP Response TIMEOUT!");
+			response.status = false;
+			return response;
+		}
+	}
+	_serverResponce = client.readStringUntil('\n');
+
+	DEBUG_PRINTLN(_serverResponce);
+	if (resp && _serverResponce.indexOf(resp) == -1){
+		response.code = resp;
+		response.desc = respDesc +String(" (") + _serverResponce + String(")");
+		response.status = false;
+		return response;
+	}
+
+	response.status = true;
+	return response;
+}
+
+EMailSender::Response EMailSender::awaitSMTPResponseInsecure(EMAIL_NETWORK_CLASS &client,
 		const char* resp, const char* respDesc, uint16_t timeOut) {
 	EMailSender::Response response;
 	uint32_t ts = millis();
@@ -229,7 +265,7 @@ void encodeblock(unsigned char in[3],unsigned char out[4],int len) {
 
 #ifdef ENABLE_ATTACHMENTS
 	#if (defined(STORAGE_INTERNAL_ENABLED) && defined(FS_NO_GLOBALS))
-			void encode(fs::File *file, EMAIL_NETWORK_CLASS *client) {
+			void encode(fs::File *file, EMAIL_NETWORK_SSL_CLASS *client) {
 			 unsigned char in[3],out[4];
 			 int i,len,blocksout=0;
 
@@ -256,7 +292,7 @@ void encodeblock(unsigned char in[3],unsigned char out[4],int len) {
 	#endif
 
 	#if (defined(STORAGE_SD_ENABLED) || (defined(STORAGE_INTERNAL_ENABLED) && !defined(FS_NO_GLOBALS)))
-	void encode(File *file, EMAIL_NETWORK_CLASS *client) {
+	void encode(File *file, EMAIL_NETWORK_SSL_CLASS *client) {
 	 unsigned char in[3],out[4];
 	 int i,len,blocksout=0;
 
@@ -351,9 +387,426 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 	return send(to, sizeOfTo, sizeOfCc, 0, email, attachments);
 }
 
+void ssl_client_debug_pgm_send_cb(PGM_P info)
+{
+    size_t dbgInfoLen = strlen_P(info) + 10;
+    char *dbgInfo = new char[dbgInfoLen];
+    memset(dbgInfo, 0, dbgInfoLen);
+    strcpy_P(dbgInfo, info);
+    DEBUG_PRINTLN(dbgInfo);
+    delete[] dbgInfo;
+}
+static const char esp_ssl_client_str_1[] PROGMEM = "! E: ";
+static const char esp_ssl_client_str_2[] PROGMEM = "> C: starting socket";
+static const char esp_ssl_client_str_3[] PROGMEM = "! E: opening socket";
+static const char esp_ssl_client_str_4[] PROGMEM = "! E: could not get ip from host";
+static const char esp_ssl_client_str_5[] PROGMEM = "> C: connecting to Server";
+static const char esp_ssl_client_str_6[] PROGMEM = "> C: server connected";
+static const char esp_ssl_client_str_7[] PROGMEM = "! E: connect to Server failed!";
+static const char esp_ssl_client_str_8[] PROGMEM = "< S: ";
+static const char esp_ssl_client_str_9[] PROGMEM = "> C: seeding the random number generator";
+static const char esp_ssl_client_str_10[] PROGMEM = "> C: setting up the SSL/TLS structure";
+static const char esp_ssl_client_str_11[] PROGMEM = "> C: loading CA cert";
+static const char esp_ssl_client_str_12[] PROGMEM = "> C: setting up PSK";
+static const char esp_ssl_client_str_13[] PROGMEM = "! E: pre-shared key not valid hex or too long";
+static const char esp_ssl_client_str_14[] PROGMEM = "> C: set mbedtls config";
+static const char esp_ssl_client_str_15[] PROGMEM = "> C: loading CRT cert";
+static const char esp_ssl_client_str_16[] PROGMEM = "> C: loading private key";
+static const char esp_ssl_client_str_17[] PROGMEM = "> C: setting hostname for TLS session";
+static const char esp_ssl_client_str_18[] PROGMEM = "> C: performing the SSL/TLS handshake";
+static const char esp_ssl_client_str_19[] PROGMEM = "> C: verifying peer X.509 certificate";
+static const char esp_ssl_client_str_20[] PROGMEM = "! E: failed to verify peer certificate!";
+static const char esp_ssl_client_str_21[] PROGMEM = "> C: certificate verified";
+static const char esp_ssl_client_str_22[] PROGMEM = "> C: cleaning SSL connection";
+static const char esp_ssl_client_str_23[] PROGMEM = "! E: fingerprint too short";
+static const char esp_ssl_client_str_24[] PROGMEM = "! E: invalid hex sequence";
+static const char esp_ssl_client_str_25[] PROGMEM = "! E: could not fetch peer certificate";
+static const char esp_ssl_client_str_26[] PROGMEM = "! E: fingerprint doesn't match";
+static const char esp_ssl_client_str_27[] PROGMEM = "! E: root certificate, PSK identity or keys are required for secured connection";
+static const char esp_ssl_client_str_28[] PROGMEM = "! W: Skipping SSL Verification. INSECURE!";
+
+
+int start_socket(sslclient_context *ssl, const char *host, uint32_t port, int timeout, const char *rootCABuff, const char *cli_cert, const char *cli_key, const char *pskIdent, const char *psKey, bool insecure)
+{
+
+    if (rootCABuff == NULL && pskIdent == NULL && psKey == NULL && !insecure)
+    {
+//        if (ssl->_debugCallback)
+//            ssl_client_debug_pgm_send_cb(ssl, esp_ssl_client_str_27);
+        return -1;
+    }
+
+    int enable = 1;
+
+//    if (ssl->_debugCallback)
+        ssl_client_debug_pgm_send_cb(esp_ssl_client_str_2);
+
+    DEBUG_PRINT("Free internal heap before TLS %u");
+    DEBUG_PRINTLN( ESP.getFreeHeap());
+
+    DEBUG_PRINTLN("Starting socket");
+    ssl->socket = -1;
+
+    ssl->socket = lwip_socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (ssl->socket < 0)
+    {
+//        if (ssl->_debugCallback)
+            ssl_client_debug_pgm_send_cb( esp_ssl_client_str_3);
+        log_e("ERROR opening socket");
+        return ssl->socket;
+    }
+
+    IPAddress srv((uint32_t)0);
+    if (!WiFiGenericClass::hostByName(host, srv))
+    {
+//        if (ssl->_debugCallback)
+            ssl_client_debug_pgm_send_cb( esp_ssl_client_str_4);
+        return -1;
+    }
+
+    struct sockaddr_in serv_addr;
+    memset(&serv_addr, 0, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = srv;
+    serv_addr.sin_port = htons(port);
+
+//    if (ssl->_debugCallback)
+        ssl_client_debug_pgm_send_cb( esp_ssl_client_str_5);
+
+    if (lwip_connect(ssl->socket, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == 0)
+    {
+        if (timeout <= 0)
+        {
+            timeout = 30000; // Milli seconds.
+        }
+        timeval so_timeout = {.tv_sec = timeout / 1000, .tv_usec = (timeout % 1000) * 1000};
+
+#define ROE(x, msg)                                         \
+    {                                                       \
+        if (((x) < 0))                                      \
+        {                                                   \
+            log_e("LWIP Socket config of " msg " failed."); \
+            return -1;                                      \
+        }                                                   \
+    }
+        ROE(lwip_setsockopt(ssl->socket, SOL_SOCKET, SO_RCVTIMEO, &so_timeout, sizeof(so_timeout)), "SO_RCVTIMEO");
+        ROE(lwip_setsockopt(ssl->socket, SOL_SOCKET, SO_SNDTIMEO, &so_timeout, sizeof(so_timeout)), "SO_SNDTIMEO");
+
+        ROE(lwip_setsockopt(ssl->socket, IPPROTO_TCP, TCP_NODELAY, &enable, sizeof(enable)), "TCP_NODELAY");
+        ROE(lwip_setsockopt(ssl->socket, SOL_SOCKET, SO_KEEPALIVE, &enable, sizeof(enable)), "SO_KEEPALIVE");
+    }
+    else
+    {
+//        if (ssl->_debugCallback)
+            ssl_client_debug_pgm_send_cb( esp_ssl_client_str_7);
+        log_e("Connect to Server failed!");
+        return -1;
+    }
+
+    fcntl(ssl->socket, F_SETFL, fcntl(ssl->socket, F_GETFL, 0) | O_NONBLOCK);
+
+    return ssl->socket;
+}
+const char *custom_str = "esp32-tls";
+
+void ssl_client_send_mbedtls_error_cb(int errNo)
+{
+    char *buf = new char[512];
+    char *error_buf = new char[100];
+    memset(buf, 0, 512);
+    strcpy_P(buf, esp_ssl_client_str_1);
+    mbedtls_strerror(errNo, error_buf, 100);
+    strcat(buf, error_buf);
+    DEBUG_PRINT(buf);DEBUG_PRINTLN(errNo);
+    delete[] error_buf;
+    delete[] buf;
+}
+
+/* Change to a number between 1 and 4 to debug the TLS connection */
+#define DEBUG_LEVEL 4
+#if DEBUG_LEVEL > 0
+#include "mbedtls/debug.h"
+#endif
+
+static void my_debug(void *ctx, int level, const char *file, int line,
+                     const char *str)
+{
+    const char *p, *basename;
+    (void) ctx;
+
+    /* Extract basename from file */
+    for(p = basename = file; *p != '\0'; p++) {
+        if(*p == '/' || *p == '\\') {
+            basename = p + 1;
+        }
+    }
+
+    Serial.printf("%s:%04d: |%d| %s", basename, line, level, str);
+}
+
+int start_ssl_client_cust(sslclient_context *ssl, const char *host, uint32_t port, int timeout, const char *rootCABuff, const char *cli_cert, const char *cli_key, const char *pskIdent, const char *psKey, bool insecure)
+{
+    mbedtls_ssl_conf_dbg(( mbedtls_ssl_config *)&ssl->ssl_ctx.conf, my_debug, NULL);
+//    mbedtls_debug_set_threshold(DEBUG_LEVEL);
+
+    char buf[512];
+    int ret, flags;
+
+//    if (ssl->_debugCallback)
+        ssl_client_debug_pgm_send_cb( esp_ssl_client_str_9);
+
+    DEBUG_PRINTLN("Seeding the random number generator");
+    mbedtls_entropy_init(&ssl->entropy_ctx);
+
+    ret = mbedtls_ctr_drbg_seed(&ssl->drbg_ctx, mbedtls_entropy_func, &ssl->entropy_ctx, (const unsigned char *)custom_str, strlen(custom_str));
+    if (ret < 0)
+    {
+//        if (ssl->_debugCallback)
+            ssl_client_send_mbedtls_error_cb( ret);
+        return ret; //esp32_ssl_handle_error(ret);
+    }
+
+//    if (ssl->_debugCallback)
+        ssl_client_debug_pgm_send_cb( esp_ssl_client_str_10);
+
+    DEBUG_PRINTLN("Setting up the SSL/TLS structure...");
+
+    if ((ret = mbedtls_ssl_config_defaults(&ssl->ssl_conf, MBEDTLS_SSL_IS_CLIENT, MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT)) != 0)
+    {
+//        if (ssl->_debugCallback)
+            ssl_client_send_mbedtls_error_cb( ret);
+        return ret; //esp32_ssl_handle_error(ret);
+    }
+
+    // MBEDTLS_SSL_VERIFY_REQUIRED if a CA certificate is defined on Arduino IDE and
+    // MBEDTLS_SSL_VERIFY_NONE if not.
+
+    if (insecure)
+    {
+//        if (ssl->_debugCallback)
+            ssl_client_debug_pgm_send_cb( esp_ssl_client_str_28);
+
+        mbedtls_ssl_conf_authmode(&ssl->ssl_conf, MBEDTLS_SSL_VERIFY_NONE);
+        log_i("WARNING: Skipping SSL Verification. INSECURE!");
+    }
+    else if (rootCABuff != NULL)
+    {
+//        if (ssl->_debugCallback)
+//            ssl_client_debug_pgm_send_cb(ssl, esp_ssl_client_str_11);
+        DEBUG_PRINTLN("Loading CA cert");
+        mbedtls_x509_crt_init(&ssl->ca_cert);
+        mbedtls_ssl_conf_authmode(&ssl->ssl_conf, MBEDTLS_SSL_VERIFY_REQUIRED);
+        ret = mbedtls_x509_crt_parse(&ssl->ca_cert, (const unsigned char *)rootCABuff, strlen(rootCABuff) + 1);
+        mbedtls_ssl_conf_ca_chain(&ssl->ssl_conf, &ssl->ca_cert, NULL);
+        //mbedtls_ssl_conf_verify(&ssl->ssl_ctx, my_verify, NULL );
+        if (ret < 0)
+        {
+//            if (ssl->_debugCallback)
+                ssl_client_send_mbedtls_error_cb( ret);
+            // free the ca_cert in the case parse failed, otherwise, the old ca_cert still in the heap memory, that lead to "out of memory" crash.
+            mbedtls_x509_crt_free(&ssl->ca_cert);
+            return ret; // esp32_ssl_handle_error(ret);
+        }
+    }
+    else if (pskIdent != NULL && psKey != NULL)
+    {
+//        if (ssl->_debugCallback)
+            ssl_client_debug_pgm_send_cb( esp_ssl_client_str_12);
+        DEBUG_PRINTLN("Setting up PSK");
+        // convert PSK from hex to binary
+        if ((strlen(psKey) & 1) != 0 || strlen(psKey) > 2 * MBEDTLS_PSK_MAX_LEN)
+        {
+//            if (ssl->_debugCallback)
+                ssl_client_debug_pgm_send_cb( esp_ssl_client_str_13);
+            log_e("pre-shared key not valid hex or too long");
+            return -1;
+        }
+
+        unsigned char psk[MBEDTLS_PSK_MAX_LEN];
+        size_t psk_len = strlen(psKey) / 2;
+        for (int j = 0; j < strlen(psKey); j += 2)
+        {
+            char c = psKey[j];
+            if (c >= '0' && c <= '9')
+                c -= '0';
+            else if (c >= 'A' && c <= 'F')
+                c -= 'A' - 10;
+            else if (c >= 'a' && c <= 'f')
+                c -= 'a' - 10;
+            else
+                return -1;
+            psk[j / 2] = c << 4;
+            c = psKey[j + 1];
+            if (c >= '0' && c <= '9')
+                c -= '0';
+            else if (c >= 'A' && c <= 'F')
+                c -= 'A' - 10;
+            else if (c >= 'a' && c <= 'f')
+                c -= 'a' - 10;
+            else
+                return -1;
+            psk[j / 2] |= c;
+        }
+        // set mbedtls config
+//        if (ssl->_debugCallback)
+            ssl_client_debug_pgm_send_cb( esp_ssl_client_str_14);
+
+        ret = mbedtls_ssl_conf_psk(&ssl->ssl_conf, psk, psk_len,
+                                   (const unsigned char *)pskIdent, strlen(pskIdent));
+        if (ret != 0)
+        {
+//            if (ssl->_debugCallback)
+                ssl_client_send_mbedtls_error_cb( ret);
+
+            log_e("mbedtls_ssl_conf_psk returned %d", ret);
+            return ret; //esp32_ssl_handle_error(ret);
+        }
+    }
+    else
+    {
+        return -1;
+    }
+
+    if (!insecure && cli_cert != NULL && cli_key != NULL)
+    {
+
+        mbedtls_x509_crt_init(&ssl->client_cert);
+        mbedtls_pk_init(&ssl->client_key);
+
+//        if (ssl->_debugCallback)
+            ssl_client_debug_pgm_send_cb( esp_ssl_client_str_15);
+
+        DEBUG_PRINTLN("Loading CRT cert");
+
+        ret = mbedtls_x509_crt_parse(&ssl->client_cert, (const unsigned char *)cli_cert, strlen(cli_cert) + 1);
+        if (ret < 0)
+        {
+//            if (ssl->_debugCallback)
+                ssl_client_send_mbedtls_error_cb( ret);
+            // free the client_cert in the case parse failed, otherwise, the old client_cert still in the heap memory, that lead to "out of memory" crash.
+            mbedtls_x509_crt_free(&ssl->client_cert);
+            return ret; // esp32_ssl_handle_error(ret);
+        }
+
+//        if (ssl->_debugCallback)
+            ssl_client_debug_pgm_send_cb( esp_ssl_client_str_16);
+
+        DEBUG_PRINTLN("Loading private key");
+        ret = mbedtls_pk_parse_key(&ssl->client_key, (const unsigned char *)cli_key, strlen(cli_key) + 1, NULL, 0);
+
+        if (ret != 0)
+        {
+//            if (ssl->_debugCallback)
+                ssl_client_send_mbedtls_error_cb( ret);
+            return ret; //esp32_ssl_handle_error(ret);
+        }
+
+        mbedtls_ssl_conf_own_cert(&ssl->ssl_conf, &ssl->client_cert, &ssl->client_key);
+    }
+
+    delay(100);
+//    if (ssl->_debugCallback)
+	ssl_client_debug_pgm_send_cb( esp_ssl_client_str_17);
+
+    DEBUG_PRINTLN("Setting hostname for TLS session...");
+
+    // Hostname set here should match CN in server certificate
+    if ((ret = mbedtls_ssl_set_hostname(&ssl->ssl_ctx, host)) != 0)
+    {
+//        if (ssl->_debugCallback)
+            ssl_client_send_mbedtls_error_cb( ret);
+        return ret; // esp32_ssl_handle_error(ret);
+    }
+
+    DEBUG_PRINTLN("Setting hostname for TLS session...OK");
+
+
+    mbedtls_ssl_conf_rng(&ssl->ssl_conf, mbedtls_ctr_drbg_random, &ssl->drbg_ctx);
+
+    if ((ret = mbedtls_ssl_setup(&ssl->ssl_ctx, &ssl->ssl_conf)) != 0)
+    {
+//        if (ssl->_debugCallback)
+            ssl_client_send_mbedtls_error_cb( ret);
+        return ret; // esp32_ssl_handle_error(ret);
+    }
+
+    mbedtls_ssl_set_bio(&ssl->ssl_ctx, &ssl->socket, mbedtls_net_send, mbedtls_net_recv, NULL);
+
+//    if (ssl->_debugCallback)
+        ssl_client_debug_pgm_send_cb( esp_ssl_client_str_18);
+
+    DEBUG_PRINTLN("Performing the SSL/TLS handshake...");
+    unsigned long handshake_start_time = millis();
+    while ((ret = mbedtls_ssl_handshake(&ssl->ssl_ctx)) != 0)
+    {
+        if (ret != MBEDTLS_ERR_SSL_WANT_READ && ret != MBEDTLS_ERR_SSL_WANT_WRITE)
+        {
+//            if (ssl->_debugCallback)
+        	DEBUG_PRINT("NEXT HANDSHAKE");
+                ssl_client_send_mbedtls_error_cb( ret);
+            return ret; //esp32_ssl_handle_error(ret);
+        }
+        if ((millis() - handshake_start_time) > ssl->handshake_timeout)
+            return -1;
+        vTaskDelay(2); //2 ticks
+    }
+
+    if (cli_cert != NULL && cli_key != NULL)
+    {
+    	DEBUG_PRINT("Protocol is %s Ciphersuite is %s"); DEBUG_PRINT(mbedtls_ssl_get_version(&ssl->ssl_ctx)); DEBUG_PRINTLN( mbedtls_ssl_get_ciphersuite(&ssl->ssl_ctx));
+        if ((ret = mbedtls_ssl_get_record_expansion(&ssl->ssl_ctx)) >= 0)
+        {
+            log_d("Record expansion is %d", ret);
+        }
+        else
+        {
+            log_w("Record expansion is unknown (compression)");
+        }
+    }
+
+//    if (ssl->_debugCallback)
+        ssl_client_debug_pgm_send_cb( esp_ssl_client_str_19);
+
+    DEBUG_PRINTLN("Verifying peer X.509 certificate...");
+
+    if ((flags = mbedtls_ssl_get_verify_result(&ssl->ssl_ctx)) != 0)
+    {
+        memset(buf, 0, sizeof(buf));
+        mbedtls_x509_crt_verify_info(buf, sizeof(buf), "  ! ", flags);
+        log_e("Failed to verify peer certificate! verification info: %s", buf);
+        stop_ssl_socket(ssl, rootCABuff, cli_cert, cli_key); //It's not safe continue.
+        return ret; // esp32_ssl_handle_error(ret);
+    }
+    else
+    {
+        DEBUG_PRINTLN("Certificate verified.");
+    }
+
+    if (rootCABuff != NULL)
+    {
+        mbedtls_x509_crt_free(&ssl->ca_cert);
+    }
+
+    if (cli_cert != NULL)
+    {
+        mbedtls_x509_crt_free(&ssl->client_cert);
+    }
+
+    if (cli_key != NULL)
+    {
+        mbedtls_pk_free(&ssl->client_key);
+    }
+
+    DEBUG_PRINT("Free internal heap after TLS %u");
+    DEBUG_PRINTLN(ESP.getFreeHeap());
+
+    return ssl->socket;
+}
+
+
 EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte sizeOfCc,byte sizeOfCCn, EMailMessage &email, Attachments attachments)
 {
-	EMAIL_NETWORK_CLASS client;
+	EMAIL_NETWORK_SSL_CLASS client;
 //	SSLClient client(base_client, TAs, (size_t)TAs_NUM, A5);
 
   DEBUG_PRINT(F("Insecure client:"));
@@ -386,12 +839,81 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 	#if ((!defined(ARDUINO_ESP32_RELEASE_1_0_4)) && (!defined(ARDUINO_ESP32_RELEASE_1_0_3)) && (!defined(ARDUINO_ESP32_RELEASE_1_0_2)))
 		  client.setInsecure();
 	#endif
+//	client.setInsecure();
+//	  DEBUG_PRINTLN(F("Insecure client:"));
+
 #endif
 
   EMailSender::Response response;
 
   DEBUG_PRINTLN(this->smtp_server);
   DEBUG_PRINTLN(this->smtp_port);
+
+  if (this->smtp_port==587){
+	  EMAIL_NETWORK_CLASS basicClient;
+	  if(!basicClient.connect(this->smtp_server, this->smtp_port)) {
+		  response.desc = F("Could not connect to mail server");
+		  response.code = F("2");
+		  response.status = false;
+
+		  return response;
+	  }
+
+	  basicClient.setTimeout(30);
+
+	  response = awaitSMTPResponseInsecure(basicClient, "220", "Connection Error");
+	  if (!response.status) return response;
+
+	  String commandHELO = "HELO";
+	  String helo = commandHELO; // + " "+String(publicIPDescriptor)+" ";
+	  DEBUG_PRINTLN(helo);
+	  basicClient.println(helo);
+
+	  response = awaitSMTPResponseInsecure(basicClient, "250", "Identification error");
+	  if (!response.status) return response;
+
+	  DEBUG_PRINTLN(F("STARTTLS"));
+	  basicClient.println(F("STARTTLS"));
+
+	  response = awaitSMTPResponseInsecure(basicClient, "220", "Server not ready!");
+	  if (!response.status) return response;
+
+	  DEBUG_PRINTLN(F("SSL HAND"));
+
+	    sslclient_context *sslclient;
+
+		sslclient = new sslclient_context;
+		ssl_init(sslclient);
+		sslclient->socket = 0;
+		sslclient->handshake_timeout = 120000;
+
+		  DEBUG_PRINTLN(F("SSL HAND 2"));
+
+		const char* pskIdent;
+		const char* psKey;
+
+		basicClient.stop();
+
+		sslclient->socket = start_socket(sslclient, this->smtp_server, this->smtp_port, sslclient->handshake_timeout, NULL, NULL, NULL,pskIdent, psKey,true);
+
+		int ret = start_ssl_client_cust(sslclient, this->smtp_server, this->smtp_port, sslclient->handshake_timeout, NULL, NULL, NULL,pskIdent, psKey,true);
+
+		  DEBUG_PRINTLN(F("SSL HAND 4"));
+
+		DEBUG_PRINT(F("startesp32_ssl_client: "));
+        DEBUG_PRINTLN(ret);
+
+//  	  String commandHELO = "HELO";
+//  	  String helo = commandHELO; // + " "+String(publicIPDescriptor)+" ";
+  	  DEBUG_PRINTLN("HELO");
+  	  basicClient.println("HELO");
+
+  	  response = awaitSMTPResponseInsecure(basicClient, "250", "Identification error");
+  	  if (!response.status) return response;
+
+
+  }
+
 
   if(!client.connect(this->smtp_server, this->smtp_port)) {
 	  response.desc = F("Could not connect to mail server");
@@ -420,7 +942,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
   }
 
   if (useAuth){
-	  if (this->isSASLLogin == true){
+	 if (this->isSASLLogin == true){
 
 		  int size = 1 + strlen(this->email_login)+ strlen(this->email_password)+2;
 	      char * logPass = (char *) malloc(size);
