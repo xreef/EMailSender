@@ -26,15 +26,12 @@ Arduino (support W5100 like must be set, and ENC28J60 via UIPEthernet), esp8266 
 #### [Inviare email con allegati (libreria v2.x): esp32 e esp8266](https://www.mischianti.org/it/2020/06/16/inviare-email-con-allegati-libreria-v2-x-esp32-e-esp8266-part-2/)
 
 ## Change log
-12/04/2021: v2.4.1 Add support for LITTLEFS and Ffat on esp32 and fix certificate verification from esp32 core 1.0.5 
-
-18/03/2021: v2.3.0 Add support for LittleFS on esp8266
-
-02/01/2021: v2.2.0 New support for SAMD devices via WiFiNINA (Arduino MKR WiFi 1010, Arduino Vidor 4000 and Arduino UNO WiFi Rev.2 ecc.).
-
-01/01/2021: v2.1.5 Add possibility to use EHLO instead of HELO, and SASL login.
-
-27/11/2020: v2.1.4 Add more constructor to allow more structure for distribution list (now const char*, char* and String array are supported)
+ - 12/04/2021: v2.4.3 Fix multiple email send
+ - 12/04/2021: v2.4.1 Add support for LITTLEFS and Ffat on esp32 and fix certificate verification from esp32 core 1.0.5 
+ - 18/03/2021: v2.3.0 Add support for LittleFS on esp8266
+ - 02/01/2021: v2.2.0 New support for SAMD devices via WiFiNINA (Arduino MKR WiFi 1010, Arduino Vidor 4000 and Arduino UNO WiFi Rev.2 ecc.).
+ - 01/01/2021: v2.1.5 Add possibility to use EHLO instead of HELO, and SASL login.
+ - 27/11/2020: v2.1.4 Add more constructor to allow more structure for distribution list (now const char*, char* and String array are supported)
 
 23/11/2020: v2.1.3 Add management of name on EMail from 
 

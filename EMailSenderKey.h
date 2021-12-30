@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 2.3.0
+ * VERSION: 2.4.3
  *
  * https://www.mischianti.org/
  *

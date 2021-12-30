@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 2.3.0
+ * VERSION: 2.4.3
  *
  * https://www.mischianti.org/
  *
@@ -783,6 +783,9 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
   response.status = true;
   response.code = F("0");
   response.desc = F("Message sent!");
+
+  client.flush();
+  client.stop();
 
   return response;
 }
