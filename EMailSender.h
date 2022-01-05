@@ -172,6 +172,13 @@
 #define EMAIL_NETWORK_CLASS WiFiClient
 #define EMAIL_NETWORK_SERVER_CLASS WiFiServer
 
+#elif(EMAIL_NETWORK_TYPE == NETWORK_ETHERNET_LARGE)
+
+#include <EthernetLarge.h>
+#include <SPI.h>
+#define EMAIL_NETWORK_CLASS EthernetClient
+#define EMAIL_NETWORK_SERVER_CLASS EthernetServer
+
 #elif(EMAIL_NETWORK_TYPE == NETWORK_WiFiNINA)
 
 #include <WiFiNINA.h>
@@ -181,6 +188,11 @@
 
 #else
 #error "no network type selected!"
+#endif
+
+#ifdef SSLCLIENT_WRAPPER
+	#include <SSLClient.h>
+//	#include <trust_anchors.h>
 #endif
 
 #ifdef ENABLE_ATTACHMENTS
@@ -324,6 +336,12 @@ public:
 	void setSASLLogin(bool isSASLLogin = false) {
 		this->isSASLLogin = isSASLLogin;
 	}
+#ifdef SSLCLIENT_WRAPPER
+	void setTrustAnchors(const br_x509_trust_anchor *trust_anchors,
+                        const size_t trust_anchors_num,
+                        const int analog_pin,
+                        const size_t max_sessions = 1);
+#endif
 private:
 	uint16_t smtp_port = 465;
 	char* smtp_server = strdup("smtp.gmail.com");
@@ -331,6 +349,13 @@ private:
 	char* email_from  = 0;
 	char* name_from  = 0;
 	char* email_password = 0;
+
+#ifdef SSLCLIENT_WRAPPER
+	br_x509_trust_anchor *trust_anchors;
+	size_t trust_anchors_num = 1;
+	int analog_pin = NULL;
+	size_t max_sessions = 1;
+#endif
 
 	const char* publicIPDescriptor = "mischianti";
 
@@ -344,6 +369,7 @@ private:
     String _serverResponce;
 
     Response awaitSMTPResponse(EMAIL_NETWORK_CLASS &client, const char* resp = "", const char* respDesc = "", uint16_t timeOut = 10000);
+    Response awaitSMTPResponse(SSLClient &client, const char* resp = "", const char* respDesc = "", uint16_t timeOut = 10000);
 };
 
 #endif
