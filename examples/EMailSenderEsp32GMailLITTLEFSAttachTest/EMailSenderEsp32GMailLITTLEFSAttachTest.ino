@@ -98,14 +98,14 @@ void setup()
     EMailSender::FileDescriptior fileDescriptor[2];
     fileDescriptor[1].filename = F("test.txt");
     fileDescriptor[1].url = F("/test.txt");
-    fileDescriptor[1].storageType = EMailSender::EMAIL_STORAGE_TYPE_LITTLEFS;
+    fileDescriptor[1].storageType = EMailSender::EMAIL_STORAGE_TYPE_LITTLE_FS;
     fileDescriptor[1].mime = MIME_TEXT_PLAIN;
 
     fileDescriptor[0].filename = F("logo.jpg");
     fileDescriptor[0].url = F("/logo.jpg");
     fileDescriptor[0].mime = "image/jpg";
     fileDescriptor[0].encode64 = true;
-    fileDescriptor[0].storageType = EMailSender::EMAIL_STORAGE_TYPE_LITTLEFS;
+    fileDescriptor[0].storageType = EMailSender::EMAIL_STORAGE_TYPE_LITTLE_FS;
 
     EMailSender::Attachments attachs = {2, fileDescriptor};
 
