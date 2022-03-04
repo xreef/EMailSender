@@ -194,31 +194,7 @@ void EMailSender::setIsSecure(bool isSecure) {
 	this->isSecure = isSecure;
 }
 
-EMailSender::Response EMailSender::awaitSMTPResponse(EMAIL_NETWORK_CLASS &client,
-		const char* resp, const char* respDesc, uint16_t timeOut) {
-	EMailSender::Response response;
-	uint32_t ts = millis();
-	while (!client.available()) {
-		if (millis() > (ts + timeOut)) {
-			response.code = F("1");
-			response.desc = F("SMTP Response TIMEOUT!");
-			response.status = false;
-			return response;
-		}
-	}
-	_serverResponce = client.readStringUntil('\n');
-
-	DEBUG_PRINTLN(_serverResponce);
-	if (resp && _serverResponce.indexOf(resp) == -1){
-		response.code = resp;
-		response.desc = respDesc +String(" (") + _serverResponce + String(")");
-		response.status = false;
-		return response;
-	}
-
-	response.status = true;
-	return response;
-}
+#ifdef SSLCLIENT_WRAPPER
 EMailSender::Response EMailSender::awaitSMTPResponse(SSLClient &client,
 		const char* resp, const char* respDesc, uint16_t timeOut) {
 	EMailSender::Response response;
@@ -244,6 +220,33 @@ EMailSender::Response EMailSender::awaitSMTPResponse(SSLClient &client,
 	response.status = true;
 	return response;
 }
+#else
+EMailSender::Response EMailSender::awaitSMTPResponse(EMAIL_NETWORK_CLASS &client,
+		const char* resp, const char* respDesc, uint16_t timeOut) {
+	EMailSender::Response response;
+	uint32_t ts = millis();
+	while (!client.available()) {
+		if (millis() > (ts + timeOut)) {
+			response.code = F("1");
+			response.desc = F("SMTP Response TIMEOUT!");
+			response.status = false;
+			return response;
+		}
+	}
+	_serverResponce = client.readStringUntil('\n');
+
+	DEBUG_PRINTLN(_serverResponce);
+	if (resp && _serverResponce.indexOf(resp) == -1){
+		response.code = resp;
+		response.desc = respDesc +String(" (") + _serverResponce + String(")");
+		response.status = false;
+		return response;
+	}
+
+	response.status = true;
+	return response;
+}
+#endif
 
 static const char cb64[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 void encodeblock(unsigned char in[3],unsigned char out[4],int len) {
@@ -281,54 +284,58 @@ void encodeblock(unsigned char in[3],unsigned char out[4],int len) {
 	#endif
 
 	#if (defined(STORAGE_SD_ENABLED) || (defined(STORAGE_INTERNAL_ENABLED) && !defined(FS_NO_GLOBALS)))
-			void encode(File *file, EMAIL_NETWORK_CLASS *client) {
-			 unsigned char in[3],out[4];
-			 int i,len,blocksout=0;
+		#ifdef SSLCLIENT_WRAPPER
+					void encode(File *file, SSLClient *client) {
+					 unsigned char in[3],out[4];
+					 int i,len,blocksout=0;
 
-			 while (file->available()!=0) {
-			   len=0;
-				 for (i=0;i<3;i++){
-					   in[i]=(unsigned char) file->read();
-						   if (file->available()!=0) len++;
-								 else in[i]=0;
-				 }
-				 if (len){
-					 encodeblock(in,out,len);
-			//         for(i=0;i<4;i++) client->write(out[i]);
-					 client->write(out, 4);
-					 blocksout++; }
-				 if (blocksout>=19||file->available()==0){
-					 if (blocksout) {
-						 client->print("\r\n");
-					 }
-					 blocksout=0;
-				 }
-			  }
-			}
-			void encode(File *file, SSLClient *client) {
-			 unsigned char in[3],out[4];
-			 int i,len,blocksout=0;
+					 while (file->available()!=0) {
+					   len=0;
+						 for (i=0;i<3;i++){
+							   in[i]=(unsigned char) file->read();
+								   if (file->available()!=0) len++;
+										 else in[i]=0;
+						 }
+						 if (len){
+							 encodeblock(in,out,len);
+					//         for(i=0;i<4;i++) client->write(out[i]);
+							 client->write(out, 4);
+							 blocksout++; }
+						 if (blocksout>=19||file->available()==0){
+							 if (blocksout) {
+								 client->print("\r\n");
+							 }
+							 blocksout=0;
+						 }
+					  }
+					}
 
-			 while (file->available()!=0) {
-			   len=0;
-				 for (i=0;i<3;i++){
-					   in[i]=(unsigned char) file->read();
-						   if (file->available()!=0) len++;
-								 else in[i]=0;
-				 }
-				 if (len){
-					 encodeblock(in,out,len);
-			//         for(i=0;i<4;i++) client->write(out[i]);
-					 client->write(out, 4);
-					 blocksout++; }
-				 if (blocksout>=19||file->available()==0){
-					 if (blocksout) {
-						 client->print("\r\n");
-					 }
-					 blocksout=0;
-				 }
-			  }
-			}
+		#else
+					void encode(File *file, EMAIL_NETWORK_CLASS *client) {
+					 unsigned char in[3],out[4];
+					 int i,len,blocksout=0;
+
+					 while (file->available()!=0) {
+					   len=0;
+						 for (i=0;i<3;i++){
+							   in[i]=(unsigned char) file->read();
+								   if (file->available()!=0) len++;
+										 else in[i]=0;
+						 }
+						 if (len){
+							 encodeblock(in,out,len);
+					//         for(i=0;i<4;i++) client->write(out[i]);
+							 client->write(out, 4);
+							 blocksout++; }
+						 if (blocksout>=19||file->available()==0){
+							 if (blocksout) {
+								 client->print("\r\n");
+							 }
+							 blocksout=0;
+						 }
+					  }
+					}
+		#endif
 	#endif
 #endif
 
@@ -352,18 +359,6 @@ const char** toCharArray(char* arr[], int num) {
 
     return buffer;
 }
-
-#ifdef SSLCLIENT_WRAPPER
-void EMailSender::setTrustAnchors(const br_x509_trust_anchor *trust_anchors,
-                    const size_t trust_anchors_num,
-                    const int analog_pin,
-                    const size_t max_sessions){
-	this->trust_anchors = (br_x509_trust_anchor*)trust_anchors;
-	this->trust_anchors_num = trust_anchors_num;
-	this->analog_pin = analog_pin;
-	this->max_sessions = max_sessions;
-}
-#endif
 
 EMailSender::Response EMailSender::send(char* tos[], byte sizeOfTo, EMailMessage &email, Attachments attachments) {
 	return send(toCharArray(tos, sizeOfTo), sizeOfTo, 0, 0, email, attachments);
@@ -412,11 +407,28 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 	return send(to, sizeOfTo, sizeOfCc, 0, email, attachments);
 }
 
+#ifdef SSLCLIENT_WRAPPER
+// Initialize the SSL client library
+// We input an EthernetClient, our trust anchors, and the analog pin
+EMAIL_NETWORK_CLASS base_client;
+SSLClient client(base_client, TAs, (size_t)TAs_NUM, ANALOG_PIN, 2);
+
+// SSLClient client(base_client, trust_anchors, (size_t)EMailSender::trust_anchors_num, EMailSender::analog_pin, EMailSender::max_sessions, SSLClient::SSL_DUMP);
+// SSLClient client(base_client, TAs, (size_t)TAs_NUM, A7, 1, SSLClient::SSL_INFO);
+#endif
+
 EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte sizeOfCc,byte sizeOfCCn, EMailMessage &email, Attachments attachments)
 {
 #ifdef SSLCLIENT_WRAPPER
-	EMAIL_NETWORK_CLASS baseClient;
-	SSLClient client(baseClient, this->trust_anchors, (size_t)this->trust_anchors_num, this->analog_pin, this->max_sessions);
+//	DEBUG_PRINTLN(F("Instantiate baseClient!"));
+//delay(1000);
+//	EMAIL_NETWORK_CLASS baseClient;
+//	delay(1000);
+//	DEBUG_PRINTLN(F("Wrap baseClient!"));
+//	SSLClient client(baseClient, this->trust_anchors, (size_t)this->trust_anchors_num, this->analog_pin, this->max_sessions, SSLClient::SSL_DUMP);
+////	SSLClient client(baseClient, TAs, (size_t)TAs_NUM, A7, 1, SSLClient::SSL_INFO);
+//
+//	DEBUG_PRINTLN(F("Wraped baseClient!"));
 #else
 	EMAIL_NETWORK_CLASS client;
 //	SSLClient client(base_client, TAs, (size_t)TAs_NUM, A5);
