@@ -132,7 +132,7 @@
 #define EMAIL_NETWORK_SSL_CLASS WiFiClientSecure
 #define EMAIL_NETWORK_SERVER_CLASS WiFiServer
 
-#elif(EMAIL_NETWORK_TYPE == NETWORK_W5100)
+#elif(EMAIL_NETWORK_TYPE == NETWORK_W5100 || EMAIL_NETWORK_TYPE == NETWORK_ETHERNET_ENC)
 
 #ifdef STM32_DEVICE
 #define EMAIL_NETWORK_CLASS TCPClient
@@ -172,6 +172,13 @@
 #define EMAIL_NETWORK_CLASS WiFiClient
 #define EMAIL_NETWORK_SERVER_CLASS WiFiServer
 
+#elif(EMAIL_NETWORK_TYPE == NETWORK_ETHERNET_LARGE)
+
+#include <EthernetLarge.h>
+#include <SPI.h>
+#define EMAIL_NETWORK_CLASS EthernetClient
+#define EMAIL_NETWORK_SERVER_CLASS EthernetServer
+
 #elif(EMAIL_NETWORK_TYPE == NETWORK_WiFiNINA)
 
 #include <WiFiNINA.h>
@@ -181,6 +188,11 @@
 
 #else
 #error "no network type selected!"
+#endif
+
+#ifdef SSLCLIENT_WRAPPER
+	#include <SSLClient.h>
+	#include "trust_anchors.h"
 #endif
 
 #ifdef ENABLE_ATTACHMENTS
@@ -343,7 +355,11 @@ private:
 
     String _serverResponce;
 
+#ifdef SSLCLIENT_WRAPPER
+    Response awaitSMTPResponse(SSLClient &client, const char* resp = "", const char* respDesc = "", uint16_t timeOut = 20000);
+#else
     Response awaitSMTPResponse(EMAIL_NETWORK_CLASS &client, const char* resp = "", const char* respDesc = "", uint16_t timeOut = 10000);
+#endif
 };
 
 #endif

@@ -194,6 +194,33 @@ void EMailSender::setIsSecure(bool isSecure) {
 	this->isSecure = isSecure;
 }
 
+#ifdef SSLCLIENT_WRAPPER
+EMailSender::Response EMailSender::awaitSMTPResponse(SSLClient &client,
+		const char* resp, const char* respDesc, uint16_t timeOut) {
+	EMailSender::Response response;
+	uint32_t ts = millis();
+	while (!client.available()) {
+		if (millis() > (ts + timeOut)) {
+			response.code = F("1");
+			response.desc = F("SMTP Response TIMEOUT!");
+			response.status = false;
+			return response;
+		}
+	}
+	_serverResponce = client.readStringUntil('\n');
+
+	DEBUG_PRINTLN(_serverResponce);
+	if (resp && _serverResponce.indexOf(resp) == -1){
+		response.code = resp;
+		response.desc = respDesc +String(" (") + _serverResponce + String(")");
+		response.status = false;
+		return response;
+	}
+
+	response.status = true;
+	return response;
+}
+#else
 EMailSender::Response EMailSender::awaitSMTPResponse(EMAIL_NETWORK_CLASS &client,
 		const char* resp, const char* respDesc, uint16_t timeOut) {
 	EMailSender::Response response;
@@ -219,6 +246,7 @@ EMailSender::Response EMailSender::awaitSMTPResponse(EMAIL_NETWORK_CLASS &client
 	response.status = true;
 	return response;
 }
+#endif
 
 static const char cb64[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 void encodeblock(unsigned char in[3],unsigned char out[4],int len) {
@@ -256,30 +284,58 @@ void encodeblock(unsigned char in[3],unsigned char out[4],int len) {
 	#endif
 
 	#if (defined(STORAGE_SD_ENABLED) || (defined(STORAGE_INTERNAL_ENABLED) && !defined(FS_NO_GLOBALS)))
-	void encode(File *file, EMAIL_NETWORK_CLASS *client) {
-	 unsigned char in[3],out[4];
-	 int i,len,blocksout=0;
+		#ifdef SSLCLIENT_WRAPPER
+					void encode(File *file, SSLClient *client) {
+					 unsigned char in[3],out[4];
+					 int i,len,blocksout=0;
 
-	 while (file->available()!=0) {
-	   len=0;
-		 for (i=0;i<3;i++){
-			   in[i]=(unsigned char) file->read();
-				   if (file->available()!=0) len++;
-						 else in[i]=0;
-		 }
-		 if (len){
-			 encodeblock(in,out,len);
-	//         for(i=0;i<4;i++) client->write(out[i]);
-			 client->write(out, 4);
-			 blocksout++; }
-		 if (blocksout>=19||file->available()==0){
-			 if (blocksout) {
-				 client->print("\r\n");
-			 }
-			 blocksout=0;
-		 }
-	  }
-	}
+					 while (file->available()!=0) {
+					   len=0;
+						 for (i=0;i<3;i++){
+							   in[i]=(unsigned char) file->read();
+								   if (file->available()!=0) len++;
+										 else in[i]=0;
+						 }
+						 if (len){
+							 encodeblock(in,out,len);
+					//         for(i=0;i<4;i++) client->write(out[i]);
+							 client->write(out, 4);
+							 blocksout++; }
+						 if (blocksout>=19||file->available()==0){
+							 if (blocksout) {
+								 client->print("\r\n");
+							 }
+							 blocksout=0;
+						 }
+					  }
+					}
+
+		#else
+					void encode(File *file, EMAIL_NETWORK_CLASS *client) {
+					 unsigned char in[3],out[4];
+					 int i,len,blocksout=0;
+
+					 while (file->available()!=0) {
+					   len=0;
+						 for (i=0;i<3;i++){
+							   in[i]=(unsigned char) file->read();
+								   if (file->available()!=0) len++;
+										 else in[i]=0;
+						 }
+						 if (len){
+							 encodeblock(in,out,len);
+					//         for(i=0;i<4;i++) client->write(out[i]);
+							 client->write(out, 4);
+							 blocksout++; }
+						 if (blocksout>=19||file->available()==0){
+							 if (blocksout) {
+								 client->print("\r\n");
+							 }
+							 blocksout=0;
+						 }
+					  }
+					}
+		#endif
 	#endif
 #endif
 
@@ -351,43 +407,64 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 	return send(to, sizeOfTo, sizeOfCc, 0, email, attachments);
 }
 
+#ifdef SSLCLIENT_WRAPPER
+// Initialize the SSL client library
+// We input an EthernetClient, our trust anchors, and the analog pin
+EMAIL_NETWORK_CLASS base_client;
+SSLClient client(base_client, TAs, (size_t)TAs_NUM, ANALOG_PIN, 2);
+
+// SSLClient client(base_client, trust_anchors, (size_t)EMailSender::trust_anchors_num, EMailSender::analog_pin, EMailSender::max_sessions, SSLClient::SSL_DUMP);
+// SSLClient client(base_client, TAs, (size_t)TAs_NUM, A7, 1, SSLClient::SSL_INFO);
+#endif
+
 EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte sizeOfCc,byte sizeOfCCn, EMailMessage &email, Attachments attachments)
 {
+#ifdef SSLCLIENT_WRAPPER
+//	DEBUG_PRINTLN(F("Instantiate baseClient!"));
+//delay(1000);
+//	EMAIL_NETWORK_CLASS baseClient;
+//	delay(1000);
+//	DEBUG_PRINTLN(F("Wrap baseClient!"));
+//	SSLClient client(baseClient, this->trust_anchors, (size_t)this->trust_anchors_num, this->analog_pin, this->max_sessions, SSLClient::SSL_DUMP);
+////	SSLClient client(baseClient, TAs, (size_t)TAs_NUM, A7, 1, SSLClient::SSL_INFO);
+//
+//	DEBUG_PRINTLN(F("Wraped baseClient!"));
+#else
 	EMAIL_NETWORK_CLASS client;
 //	SSLClient client(base_client, TAs, (size_t)TAs_NUM, A5);
 
   DEBUG_PRINT(F("Insecure client:"));
   DEBUG_PRINTLN(this->isSecure);
 
-#if (EMAIL_NETWORK_TYPE == NETWORK_ESP8266 || EMAIL_NETWORK_TYPE == NETWORK_ESP8266_242)
-	#ifndef ARDUINO_ESP8266_RELEASE_2_4_2
-	  if (this->isSecure == false){
-		  client.setInsecure();
-		  bool mfln = client.probeMaxFragmentLength(this->smtp_server, this->smtp_port, 512);
+	#if (EMAIL_NETWORK_TYPE == NETWORK_ESP8266 || EMAIL_NETWORK_TYPE == NETWORK_ESP8266_242)
+		#ifndef ARDUINO_ESP8266_RELEASE_2_4_2
+		  if (this->isSecure == false){
+			  client.setInsecure();
+			  bool mfln = client.probeMaxFragmentLength(this->smtp_server, this->smtp_port, 512);
 
-		  DEBUG_PRINT("MFLN supported: ");
-		  DEBUG_PRINTLN(mfln?"yes":"no");
+			  DEBUG_PRINT("MFLN supported: ");
+			  DEBUG_PRINTLN(mfln?"yes":"no");
 
-		  if (mfln) {
-			  client.setBufferSizes(512, 512);
+			  if (mfln) {
+				  client.setBufferSizes(512, 512);
+			  }
 		  }
-	  }
-	#endif
-#elif (EMAIL_NETWORK_TYPE == NETWORK_ESP32)
-//	  String coreVersion = String(ESP.getSdkVersion());
-//	  uint8_t firstdot = coreVersion.indexOf('.');
-//
-//	  DEBUG_PRINTLN(coreVersion.substring(1, coreVersion.indexOf('.', firstdot+1)).toFloat());
-//	  DEBUG_PRINTLN(coreVersion.substring(1, coreVersion.indexOf('.', firstdot+1)).toFloat() >= 3.3f);
-//	  if (coreVersion.substring(1, coreVersion.indexOf('.', firstdot+1)).toFloat() >= 3.3f) {
-//		  client.setInsecure();
-//	  }
-	#include <core_version.h>
-	#if ((!defined(ARDUINO_ESP32_RELEASE_1_0_4)) && (!defined(ARDUINO_ESP32_RELEASE_1_0_3)) && (!defined(ARDUINO_ESP32_RELEASE_1_0_2)))
-		  client.setInsecure();
+		#endif
+	#elif (EMAIL_NETWORK_TYPE == NETWORK_ESP32)
+	//	  String coreVersion = String(ESP.getSdkVersion());
+	//	  uint8_t firstdot = coreVersion.indexOf('.');
+	//
+	//	  DEBUG_PRINTLN(coreVersion.substring(1, coreVersion.indexOf('.', firstdot+1)).toFloat());
+	//	  DEBUG_PRINTLN(coreVersion.substring(1, coreVersion.indexOf('.', firstdot+1)).toFloat() >= 3.3f);
+	//	  if (coreVersion.substring(1, coreVersion.indexOf('.', firstdot+1)).toFloat() >= 3.3f) {
+	//		  client.setInsecure();
+	//	  }
+		#include <core_version.h>
+		#if ((!defined(ARDUINO_ESP32_RELEASE_1_0_4)) && (!defined(ARDUINO_ESP32_RELEASE_1_0_3)) && (!defined(ARDUINO_ESP32_RELEASE_1_0_2)))
+			  client.setInsecure();
+		#endif
 	#endif
 #endif
-
   EMailSender::Response response;
 
   DEBUG_PRINTLN(this->smtp_server);

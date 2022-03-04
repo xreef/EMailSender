@@ -57,13 +57,32 @@
 #define NETWORK_ESP32 (4)
 #define NETWORK_ESP32_ETH (5)
 #define NETWORK_WiFiNINA (7)
+#define NETWORK_ETHERNET_LARGE (8)
+#define NETWORK_ETHERNET_ENC (9)
+
+#define SSLCLIENT_WRAPPER
+
+#ifdef SSLCLIENT_WRAPPER
+	// Generate the trust_anchors.h with this online generator
+	// https://openslab-osu.github.io/bearssl-certificate-utility/
+	/**
+	 *  For Ethernet w5x00 card you must follow the step given
+	 *  from this link https://github.com/OPEnSLab-OSU/SSLClient#sslclient-with-ethernet
+	 *  you can modify Ethernet library or use directly this modified one
+	 *  https://github.com/OPEnSLab-OSU/EthernetLarge
+	 *
+	 *  For enc28j60 use EthernetENC available from library manager or
+	 *  https://github.com/jandrassy/EthernetENC
+	 */
+	#define ANALOG_PIN A7
+#endif
 
 #ifndef DEFAULT_EMAIL_NETWORK_TYPE_ESP8266
 	#define DEFAULT_EMAIL_NETWORK_TYPE_ESP8266 	NETWORK_ESP8266
 	#define DEFAULT_INTERNAL_ESP8266_STORAGE STORAGE_SPIFFS
 #endif
 #ifndef DEFAULT_EMAIL_NETWORK_TYPE_ESP32
-	#define DEFAULT_EMAIL_NETWORK_TYPE_ESP32 	NETWORK_ESP32
+	#define DEFAULT_EMAIL_NETWORK_TYPE_ESP32 	NETWORK_ETHERNET_ENC
 	#define DEFAULT_INTERNAL_ESP32_STORAGE STORAGE_SPIFFS
 #endif
 #ifndef DEFAULT_EMAIL_NETWORK_TYPE_ARDUINO
