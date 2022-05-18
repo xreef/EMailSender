@@ -132,3 +132,5 @@ Sending status:
 0
 Message sent!
 ```
+
+https://downloads.arduino.cc/libraries/logs/github.com/xreef/EMailSender/
