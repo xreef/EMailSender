@@ -1,0 +1,21 @@
+{
+	"name": "EMailSender",
+	"description": "Library to send EMail with attachments via STM32 (w5500/enc28j60 + SSL, SPI Flash, SdFat2) Arduino (w5500/enc28j60, SD, SdFat2, SPI Flash), Arduino SAMD board (WiFiNINA, SD, SPI Flash, SdFat2), esp8266 (w5500/enc28j60 + SSL, SPIFFS, LittleFS and SD) (core <=2.4.2 must be set and >2.4.2) and esp32 (w5500/enc28j60 + SSL, SPIFFS, LITTLEFS, Ffat and SD).",
+	"keywords": "arduino, esp8266, esp32, stm32, email, SMTP, Attachment, gmail, spiffs, Fat, LittleFS, Ethernet, w5500, enc28j60, WiFi, SPI Flash",
+	"homepage": "https://www.mischianti.org/category/my-libraries/emailsender-send-email-with-attachments/",
+	"authors":
+		{
+			"name": "Renzo Mischianti",
+			"email": "renzo.mischianti@gmail.com",
+			"url": "https://www.mischianti.org"
+		},
+	"repository":
+	{
+		"type": "git",
+		"url": "https://github.com/xreef/EMailSender"
+	},
+	"url": "https://www.mischianti.org",
+	"frameworks": "Arduino",
+    "version": "3.0.0",
+	"platforms": "*"
+}
