@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 2.4.3
+ * VERSION: 3.0.0
  *
  * https://www.mischianti.org/
  *
@@ -33,7 +33,7 @@
  */
 
 #include "EMailSender.h"
-#include<stdio.h>
+#include <stdio.h>
 //#include <SPIFFS.h>
 //#include <LittleFS.h>
 
@@ -202,8 +202,9 @@ EMailSender::Response EMailSender::awaitSMTPResponse(SSLClient &client,
 	while (!client.available()) {
 		if (millis() > (ts + timeOut)) {
 			response.code = F("1");
-			response.desc = F("SMTP Response TIMEOUT!");
+			response.desc = String(respDesc) + "! " + F("SMTP Response TIMEOUT!");
 			response.status = false;
+
 			return response;
 		}
 	}
@@ -214,6 +215,7 @@ EMailSender::Response EMailSender::awaitSMTPResponse(SSLClient &client,
 		response.code = resp;
 		response.desc = respDesc +String(" (") + _serverResponce + String(")");
 		response.status = false;
+
 		return response;
 	}
 
@@ -228,7 +230,7 @@ EMailSender::Response EMailSender::awaitSMTPResponse(EMAIL_NETWORK_CLASS &client
 	while (!client.available()) {
 		if (millis() > (ts + timeOut)) {
 			response.code = F("1");
-			response.desc = F("SMTP Response TIMEOUT!");
+			response.desc = String(respDesc) + "! " + F("SMTP Response TIMEOUT!");
 			response.status = false;
 			return response;
 		}
@@ -256,36 +258,68 @@ void encodeblock(unsigned char in[3],unsigned char out[4],int len) {
 }
 
 #ifdef ENABLE_ATTACHMENTS
-	#if (defined(STORAGE_INTERNAL_ENABLED) && defined(FS_NO_GLOBALS))
-			void encode(fs::File *file, EMAIL_NETWORK_CLASS *client) {
-			 unsigned char in[3],out[4];
-			 int i,len,blocksout=0;
+	#ifdef STORAGE_EXTERNAL_ENABLED
+		#if (defined(DIFFERENT_FILE_MANAGE) && defined(EMAIL_FILE_EX)) || !defined(STORAGE_INTERNAL_ENABLED)
+			#ifdef SSLCLIENT_WRAPPER
+						void encode(EMAIL_FILE_EX *file, SSLClient *client) {
+						unsigned char in[3],out[4];
+						int i,len,blocksout=0;
 
-			 while (file->available()!=0) {
-			   len=0;
-				 for (i=0;i<3;i++){
-					   in[i]=(unsigned char) file->read();
-						   if (file->available()!=0) len++;
-								 else in[i]=0;
-				 }
-				 if (len){
-					 encodeblock(in,out,len);
-			//         for(i=0;i<4;i++) client->write(out[i]);
-					 client->write(out, 4);
-					 blocksout++; }
-				 if (blocksout>=19||file->available()==0){
-					 if (blocksout) {
-						 client->print("\r\n");
-					 }
-					 blocksout=0;
-				 }
-			  }
-			}
+						while (file->available()!=0) {
+						len=0;
+							for (i=0;i<3;i++){
+								in[i]=(unsigned char) file->read();
+									if (file->available()!=0) len++;
+											else in[i]=0;
+							}
+							if (len){
+								encodeblock(in,out,len);
+						//         for(i=0;i<4;i++) client->write(out[i]);
+								client->write(out, 4);
+								blocksout++; }
+							if (blocksout>=19||file->available()==0){
+								if (blocksout) {
+									client->print("\r\n");
+								}
+								blocksout=0;
+							}
+						}
+						}
+
+			#else
+					void encode(EMAIL_FILE_EX *file, EMAIL_NETWORK_CLASS *client) {
+						unsigned char in[3],out[4];
+						int i,len,blocksout=0;
+
+						while (file->available()!=0) {
+						len=0;
+							for (i=0;i<3;i++){
+								in[i]=(unsigned char) file->read();
+									if (file->available()!=0) len++;
+											else in[i]=0;
+							}
+							if (len){
+								encodeblock(in,out,len);
+						//         for(i=0;i<4;i++) client->write(out[i]);
+								client->write(out, 4);
+								blocksout++; }
+							if (blocksout>=19||file->available()==0){
+								if (blocksout) {
+									client->print("\r\n");
+								}
+								blocksout=0;
+							}
+						}
+						}
+			#endif
+
+		#endif
 	#endif
+	#ifdef STORAGE_INTERNAL_ENABLED
+		#if defined(DIFFERENT_FILE_MANAGE) || (!defined(DIFFERENT_FILE_MANAGE) && defined(EMAIL_FILE)) || !defined(STORAGE_EXTERNAL_ENABLED)
 
-	#if (defined(STORAGE_SD_ENABLED) || (defined(STORAGE_INTERNAL_ENABLED) && !defined(FS_NO_GLOBALS)))
-		#ifdef SSLCLIENT_WRAPPER
-					void encode(File *file, SSLClient *client) {
+			#ifdef SSLCLIENT_WRAPPER
+					void encode(EMAIL_FILE *file, SSLClient *client) {
 					 unsigned char in[3],out[4];
 					 int i,len,blocksout=0;
 
@@ -310,8 +344,8 @@ void encodeblock(unsigned char in[3],unsigned char out[4],int len) {
 					  }
 					}
 
-		#else
-					void encode(File *file, EMAIL_NETWORK_CLASS *client) {
+			#else
+					void encode(EMAIL_FILE *file, EMAIL_NETWORK_CLASS *client) {
 					 unsigned char in[3],out[4];
 					 int i,len,blocksout=0;
 
@@ -335,6 +369,7 @@ void encodeblock(unsigned char in[3],unsigned char out[4],int len) {
 						 }
 					  }
 					}
+			#endif
 		#endif
 	#endif
 #endif
@@ -408,18 +443,18 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 }
 
 #ifdef SSLCLIENT_WRAPPER
-// Initialize the SSL client library
-// We input an EthernetClient, our trust anchors, and the analog pin
-EMAIL_NETWORK_CLASS base_client;
-SSLClient client(base_client, TAs, (size_t)TAs_NUM, ANALOG_PIN, 2);
-
-// SSLClient client(base_client, trust_anchors, (size_t)EMailSender::trust_anchors_num, EMailSender::analog_pin, EMailSender::max_sessions, SSLClient::SSL_DUMP);
-// SSLClient client(base_client, TAs, (size_t)TAs_NUM, A7, 1, SSLClient::SSL_INFO);
+	// Initialize the SSL client library
+	// We input an EthernetClient, our trust anchors, and the analog pin
+	EMAIL_NETWORK_CLASS base_client;
+	SSLClient client(base_client, TAs, (size_t)TAs_NUM, ANALOG_PIN, 2);
+#else
+	EMAIL_NETWORK_CLASS client;
 #endif
 
 EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte sizeOfCc,byte sizeOfCCn, EMailMessage &email, Attachments attachments)
 {
 #ifdef SSLCLIENT_WRAPPER
+	DEBUG_PRINTLN(F("SSLClient active!"));
 //	DEBUG_PRINTLN(F("Instantiate baseClient!"));
 //delay(1000);
 //	EMAIL_NETWORK_CLASS baseClient;
@@ -430,7 +465,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 //
 //	DEBUG_PRINTLN(F("Wraped baseClient!"));
 #else
-	EMAIL_NETWORK_CLASS client;
+//	EMAIL_NETWORK_CLASS client;
 //	SSLClient client(base_client, TAs, (size_t)TAs_NUM, A5);
 
   DEBUG_PRINT(F("Insecure client:"));
@@ -475,11 +510,18 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 	  response.code = F("2");
 	  response.status = false;
 
+	  client.flush();
+	  client.stop();
+
 	  return response;
   }
 
   response = awaitSMTPResponse(client, "220", "Connection Error");
-  if (!response.status) return response;
+  if (!response.status) {
+	  client.flush();
+	  client.stop();
+	  return response;
+  }
 
   String commandHELO = "HELO";
   if (this->useEHLO == true) {
@@ -490,7 +532,11 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
   client.println(helo);
 
   response = awaitSMTPResponse(client, "250", "Identification error");
-  if (!response.status) return response;
+  if (!response.status) {
+	  client.flush();
+	  client.stop();
+	  return response;
+  }
 
   if (this->useEHLO == true) {
 	  for (int i = 0; i<=6; i++) awaitSMTPResponse(client);
@@ -544,7 +590,11 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 		  client.println(encode64(this->email_password));
 	  }
 	  response = awaitSMTPResponse(client, "235", "SMTP AUTH error");
-	  if (!response.status) return response;
+	  if (!response.status) {
+		  client.flush();
+		  client.stop();
+		  return response;
+	  }
   }
   DEBUG_PRINT(F("MAIL FROM: <"));
   DEBUG_PRINT(this->email_from);
@@ -576,7 +626,11 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
   client.println(F("DATA"));
 
   response = awaitSMTPResponse(client, "354", "SMTP DATA error");
-  if (!response.status) return response;
+  if (!response.status) {
+	  client.flush();
+	  client.stop();
+	  return response;
+  }
 
 //  client.println("From: <" + String(this->email_from) + '>');
 
@@ -659,11 +713,11 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 #ifdef STORAGE_INTERNAL_ENABLED
   bool spiffsActive = false;
 #endif
-#ifdef STORAGE_SD_ENABLED
+#ifdef STORAGE_EXTERNAL_ENABLED
   bool sdActive = false;
 #endif
 
-#if defined(ENABLE_ATTACHMENTS) && (defined(STORAGE_SD_ENABLED) || defined(STORAGE_INTERNAL_ENABLED))
+#if defined(ENABLE_ATTACHMENTS) && (defined(STORAGE_EXTERNAL_ENABLED) || defined(STORAGE_INTERNAL_ENABLED))
 //  if ((sizeof(attachs) / sizeof(attachs[0]))>0){
   if (sizeof(attachments)>0 && attachments.number>0){
 
@@ -677,6 +731,9 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 			  response.code = F("400");
 			  response.desc = "Error no filename specified for the file "+attachments.fileDescriptor[i].filename;
 			  response.status = false;
+			  client.flush();
+			  client.stop();
+
 			  return response;
 		  }
 		  if (attachments.fileDescriptor[i].mime.length()==0){
@@ -684,6 +741,9 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 			  response.code = F("400");
 			  response.desc = "Error no mime type specified for the file "+attachments.fileDescriptor[i].url;
 			  response.status = false;
+			  client.flush();
+			  client.stop();
+
 			  return response;
 		  }
 		  if (attachments.fileDescriptor[i].filename.length()==0){
@@ -691,6 +751,9 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 			  response.code = F("400");
 			  response.desc = "Error no filename specified for the file "+attachments.fileDescriptor[i].url;
 			  response.status = false;
+			  client.flush();
+			  client.stop();
+
 			  return response;
 		  }
 
@@ -717,23 +780,46 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 #ifdef STORAGE_INTERNAL_ENABLED
 			if (attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_SPIFFS ||
 				attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_LITTLE_FS ||
+				attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_SPIFM ||
 				attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_FFAT){
-#ifdef OPEN_CLOSE_INTERNAL
-				if (!INTERNAL_STORAGE_CLASS.exists(attachments.fileDescriptor[i].url)){
-					if(!INTERNAL_STORAGE_CLASS.begin()){
+	#ifdef OPEN_CLOSE_INTERNAL
+				if (!INTERNAL_STORAGE_CLASS.exists(attachments.fileDescriptor[i].url.c_str())){
+					#if (INTERNAL_STORAGE == STORAGE_SPIFM)
+					Adafruit_FlashTransport_SPI flashTransport(SPIFM_CS_PIN, SPI); // Set CS and SPI interface
+					Adafruit_SPIFlash flash(&flashTransport);
+
+						  // Initialize flash library and check its chip ID.
+					if (!flash.begin()) {
+						EMailSender::Response response;
+						  response.code = F("500");
+						  response.desc = F("Error, failed to initialize flash chip!");
+						  response.status = false;
+						  client.flush();
+						  client.stop();
+
+						  return response;
+					} // close flash.begin()
+
+					if(!(INTERNAL_STORAGE_CLASS.begin(&flash))){
+					#else
+					if(!(INTERNAL_STORAGE_CLASS.begin())){
+					#endif
 						  EMailSender::Response response;
 						  response.code = F("500");
 						  response.desc = F("Error on startup filesystem!");
 						  response.status = false;
+						  client.flush();
+						  client.stop();
+
 						  return response;
-					}
+					} // Close INTERNAL_STORAGE_CLASS.begin
 
 					spiffsActive = true;
 					DEBUG_PRINTLN("SPIFFS BEGIN, ACTIVE");
-				}
-#endif
+				} // Close INTERNAL_STORAGE_CLASS.exists
+	#endif
 
-				fs::File myFile = INTERNAL_STORAGE_CLASS.open(attachments.fileDescriptor[i].url, "r");
+				EMAIL_FILE myFile = INTERNAL_STORAGE_CLASS.open(attachments.fileDescriptor[i].url, EMAIL_FILE_READ);
 				  if(myFile) {
 //					  DEBUG_PRINTLN(myFile.name());
 					  if (attachments.fileDescriptor[i].encode64){
@@ -748,49 +834,56 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 					myFile.close();
 
 					client.println();
-				  }
+				  } // Else myfile
 				  else {
 					  EMailSender::Response response;
 					  response.code = F("404");
 					  response.desc = "Error opening attachments file "+attachments.fileDescriptor[i].url;
 					  response.status = false;
-					  return response;
-				  }
+					  client.flush();
+					  client.stop();
 
-			}
+					  return response;
+				  } // Close myfile
+
+			} // Close storageType
 #endif
-#ifdef STORAGE_SD_ENABLED
+#ifdef STORAGE_EXTERNAL_ENABLED
 			if (attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_SD){
-//				File myFile = SD.open(attachments.fileDescriptor[i].url, "r");
-//				  if(myFile) {
-//					while(myFile.available()) {
-//					clientCount = myFile.read(tBuf,64);
-//					  client.write((byte*)tBuf,clientCount);
-//					}
-//					myFile.close();
-//				  }
-//				  else {
-//					  EMailSender::Response response;
-//					  response.code = "404";
-//					  response.desc = "Error opening attachments file "+attachments.fileDescriptor[i].url;
-//					  response.status = false;
-//					  return response;
-//				  }
 #ifdef OPEN_CLOSE_SD
 				 DEBUG_PRINTLN(F("SD Check"));
-				 if (!SD.exists(attachments.fileDescriptor[i].url.c_str())){
-					if(!SD.begin(SD_CS_PIN)){
+				 if (!EXTERNAL_STORAGE_CLASS.exists(attachments.fileDescriptor[i].url.c_str())){
+#if EXTERNAL_STORAGE == STORAGE_SD || EXTERNAL_STORAGE == STORAGE_SDFAT2
+					if(!EXTERNAL_STORAGE_CLASS.begin(SD_CS_PIN)){
 						  response.code = F("500");
 						  response.desc = F("Error on startup SD filesystem!");
 						  response.status = false;
+						  client.flush();
+						  client.stop();
+
 						  return response;
-					}
+					} // Close EXTERNAL_STORAGE_CLASS.begin
+#elif EXTERNAL_STORAGE == STORAGE_SPIFM
+					Adafruit_FlashTransport_SPI flashTransport(SS, SPI); // Set CS and SPI interface
+					Adafruit_SPIFlash flash(&flashTransport);
+
+				  if (!EXTERNAL_STORAGE_CLASS.begin(&flash)) {
+					  response.code = F("500");
+					  response.desc = F("Error on startup SDFAT2 filesystem!");
+					  response.status = false;
+					  client.flush();
+					  client.stop();
+
+					  return response;
+				  }
+#endif
 					sdActive = true;
-				 }
+				 } // Close EXTERNAL_STORAGE_CLASS.exists
 #endif
 
 			    DEBUG_PRINTLN(F("Open file: "));
-			File myFile = SD.open(attachments.fileDescriptor[i].url.c_str());
+			EMAIL_FILE_EX myFile = EXTERNAL_STORAGE_CLASS.open(attachments.fileDescriptor[i].url.c_str());
+
 			  if(myFile) {
 				  myFile.seek(0);
 				  DEBUG_PRINTLN(F("OK"));
@@ -807,27 +900,40 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 				myFile.close();
 
 				client.println();
-			  }
+			  } // Else myfile
 			  else {
 				  response.code = F("404");
 				  response.desc = "Error opening attachments file "+attachments.fileDescriptor[i].url;
 				  response.status = false;
-				  return response;
-			  }
+				  client.flush();
+				  client.stop();
 
-			}
+				  return response;
+			  } // Close myFile
+
+			} // Close storageType==EMAIL_STORAGE_TYPE_SD
+#else
+	if (attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_SD){
+		response.code = F("500");
+		response.desc = F("EMAIL_STORAGE_TYPE_SD not enabled on EMailSenderKey.h");
+		response.status = false;
+		  client.flush();
+		  client.stop();
+
+		return response;
+	}
 #endif
 
-	  }
+	  } // Close attachment cycle
 	  client.println();
 	  client.println(F("--frontier--"));
-#ifdef STORAGE_SD_ENABLED
+#ifdef STORAGE_EXTERNAL_ENABLED
 	  #ifdef OPEN_CLOSE_SD
 		  if (sdActive){
 			  DEBUG_PRINTLN(F("SD end"));
-#ifndef ARDUINO_ESP8266_RELEASE_2_4_2
-			  SD.end();
-#endif
+		#ifndef ARDUINO_ESP8266_RELEASE_2_4_2
+			  EXTERNAL_STORAGE_CLASS.end();
+		#endif
 			  DEBUG_PRINTLN(F("SD end 2"));
 		  }
 	#endif
@@ -835,6 +941,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 
 #ifdef STORAGE_INTERNAL_ENABLED
 	#ifdef OPEN_CLOSE_INTERNAL
+		#if INTERNAL_STORAGE != STORAGE_SPIFM
 		  if (spiffsActive){
 			  INTERNAL_STORAGE_CLASS.end();
 			  DEBUG_PRINTLN(F("SPIFFS END"));
@@ -842,20 +949,29 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 	#endif
 #endif
 
-  }
 
 #endif
+	  } // Close attachement enable
 
+#endif
   DEBUG_PRINTLN(F("Message end"));
   client.println(F("."));
 
   response = awaitSMTPResponse(client, "250", "Sending message error");
-  if (!response.status) return response;
+  if (!response.status) {
+	  client.flush();
+	  client.stop();
+	  return response;
+  }
 
   client.println(F("QUIT"));
 
   response = awaitSMTPResponse(client, "221", "SMTP QUIT error");
-  if (!response.status) return response;
+  if (!response.status) {
+	  client.flush();
+	  client.stop();
+	  return response;
+  }
 
   response.status = true;
   response.code = F("0");

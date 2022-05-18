@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 2.4.3
+ * VERSION: 3.0.0
  *
  * https://www.mischianti.org/
  *
@@ -40,14 +40,20 @@
 #define ENABLE_ATTACHMENTS
 
 // Uncomment to enable printing out nice debug messages.
-//#define EMAIL_SENDER_DEBUG
+ // #define EMAIL_SENDER_DEBUG
 
 // Define where debug output will be printed.
 #define DEBUG_PRINTER Serial
 
-#define STORAGE_SPIFFS (0)
-#define STORAGE_LITTLEFS (1)
-#define STORAGE_FFAT (2)
+#define STORAGE_NONE (0)
+// INTERNAL STORAGE
+#define STORAGE_SPIFFS (1)
+#define STORAGE_LITTLEFS (2)
+#define STORAGE_FFAT (3)
+#define STORAGE_SPIFM  (5) 	// Libraries Adafruit_SPIFlash and SdFat-Adafruit-Fork
+// EXTERNAL STORAGE
+#define STORAGE_SD (4)
+#define STORAGE_SDFAT2 (6) 	// Library SdFat version >= 2.0.2
 
 #define NETWORK_ESP8266_ASYNC (0)
 #define NETWORK_ESP8266 (1)
@@ -59,8 +65,41 @@
 #define NETWORK_WiFiNINA (7)
 #define NETWORK_ETHERNET_LARGE (8)
 #define NETWORK_ETHERNET_ENC (9)
+#define NETWORK_ETHERNET_STM (10)
+#define NETWORK_UIPETHERNET (11)
 
-#define SSLCLIENT_WRAPPER
+// #define SSLCLIENT_WRAPPER
+
+// esp8266 microcontrollers configuration
+#ifndef DEFAULT_EMAIL_NETWORK_TYPE_ESP8266
+	#define DEFAULT_EMAIL_NETWORK_TYPE_ESP8266 	NETWORK_ESP8266
+	#define DEFAULT_INTERNAL_ESP8266_STORAGE STORAGE_LITTLEFS
+	#define DEFAULT_EXTERNAL_ESP8266_STORAGE STORAGE_SD
+#endif
+// esp32 microcontrollers configuration
+#ifndef DEFAULT_EMAIL_NETWORK_TYPE_ESP32
+	#define DEFAULT_EMAIL_NETWORK_TYPE_ESP32 	NETWORK_ESP32
+	#define DEFAULT_INTERNAL_ESP32_STORAGE STORAGE_SPIFFS
+	#define DEFAULT_EXTERNAL_ESP32_STORAGE STORAGE_SD
+#endif
+// stm32 microcontrollers configuration
+#ifndef DEFAULT_EMAIL_NETWORK_TYPE_STM32
+	#define DEFAULT_EMAIL_NETWORK_TYPE_STM32 	NETWORK_W5100
+	#define DEFAULT_INTERNAL_STM32_STORAGE STORAGE_NONE
+	#define DEFAULT_EXTERNAL_STM32_STORAGE STORAGE_SDFAT2
+#endif
+// Arduino microcontrollers configuration
+#ifndef DEFAULT_EMAIL_NETWORK_TYPE_ARDUINO
+	#define DEFAULT_EMAIL_NETWORK_TYPE_ARDUINO 	NETWORK_W5100
+	#define DEFAULT_INTERNAL_ARDUINO_STORAGE STORAGE_NONE
+	#define DEFAULT_EXTERNAL_ARDUINO_STORAGE STORAGE_SD
+#endif
+// Arduino SAMD microcontrollers configuration
+#ifndef DEFAULT_EMAIL_NETWORK_TYPE_ARDUINO_SAMD
+	#define DEFAULT_EMAIL_NETWORK_TYPE_SAMD 	NETWORK_WiFiNINA
+	#define DEFAULT_INTERNAL_ARDUINO_SAMD_STORAGE STORAGE_NONE
+	#define DEFAULT_EXTERNAL_ARDUINO_SAMD_STORAGE STORAGE_SD
+#endif
 
 #ifdef SSLCLIENT_WRAPPER
 	// Generate the trust_anchors.h with this online generator
@@ -75,26 +114,14 @@
 	 *  https://github.com/jandrassy/EthernetENC
 	 */
 	#define ANALOG_PIN A7
+	#include <SSLClient.h>
+	#include "trust_anchors.h"
 #endif
 
-#ifndef DEFAULT_EMAIL_NETWORK_TYPE_ESP8266
-	#define DEFAULT_EMAIL_NETWORK_TYPE_ESP8266 	NETWORK_ESP8266
-	#define DEFAULT_INTERNAL_ESP8266_STORAGE STORAGE_SPIFFS
-#endif
-#ifndef DEFAULT_EMAIL_NETWORK_TYPE_ESP32
-	#define DEFAULT_EMAIL_NETWORK_TYPE_ESP32 	NETWORK_ETHERNET_ENC
-	#define DEFAULT_INTERNAL_ESP32_STORAGE STORAGE_SPIFFS
-#endif
-#ifndef DEFAULT_EMAIL_NETWORK_TYPE_ARDUINO
-	#define DEFAULT_EMAIL_NETWORK_TYPE_ARDUINO 	NETWORK_W5100
-#endif
-#ifndef DEFAULT_EMAIL_NETWORK_TYPE_ARDUINO_SAMD
-	#define DEFAULT_EMAIL_NETWORK_TYPE_SAMD 	NETWORK_WiFiNINA
-#endif
-
-#define SD_CS_PIN 4
+#define SD_CS_PIN SS
+#define SPIFM_CS_PIN SS
 
 //#define STORAGE_INTERNAL_FORCE_DISABLE
-//#define STORAGE_SD_FORCE_DISABLE
+//#define STORAGE_EXTERNAL_FORCE_DISABLE
 
 #endif

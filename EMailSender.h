@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 2.4.3
+ * VERSION: 3.0.0
  *
  * https://www.mischianti.org/
  *
@@ -52,41 +52,63 @@
 //	#define ESP8266_GT_2_4_2_SD_STORAGE_SELECTED
 //	#define DEFAULT_EMAIL_NETWORK_TYPE_ESP8266 NETWORK_ESP8266
 //#endif
-
 #if !defined(EMAIL_NETWORK_TYPE)
 // select Network type based
 	#if defined(ESP8266) || defined(ESP31B)
 		#define EMAIL_NETWORK_TYPE DEFAULT_EMAIL_NETWORK_TYPE_ESP8266
+		#define INTERNAL_STORAGE DEFAULT_INTERNAL_ESP8266_STORAGE
+		#define EXTERNAL_STORAGE DEFAULT_EXTERNAL_ESP8266_STORAGE
+	#elif defined(ARDUINO_ARCH_STM32)
+		#define EMAIL_NETWORK_TYPE DEFAULT_EMAIL_NETWORK_TYPE_STM32
+		#define INTERNAL_STORAGE DEFAULT_INTERNAL_STM32_STORAGE
+		#define EXTERNAL_STORAGE DEFAULT_EXTERNAL_STM32_STORAGE
 	#elif defined(ESP32)
 		#define EMAIL_NETWORK_TYPE DEFAULT_EMAIL_NETWORK_TYPE_ESP32
+		#define INTERNAL_STORAGE DEFAULT_INTERNAL_ESP32_STORAGE
+		#define EXTERNAL_STORAGE DEFAULT_EXTERNAL_ESP32_STORAGE
 	#elif defined(ARDUINO_ARCH_SAMD)
 		#define EMAIL_NETWORK_TYPE DEFAULT_EMAIL_NETWORK_TYPE_SAMD
+		#define INTERNAL_STORAGE DEFAULT_INTERNAL_ARDUINO_SAMD_STORAGE
+		#define EXTERNAL_STORAGE DEFAULT_EXTERNAL_ARDUINO_SAMD_STORAGE
 	#else
 		#define EMAIL_NETWORK_TYPE DEFAULT_EMAIL_NETWORK_TYPE_ARDUINO
-	//	#define STORAGE_SD_ENABLED
+		#define INTERNAL_STORAGE DEFAULT_INTERNAL_ARDUINO_STORAGE
+		#define EXTERNAL_STORAGE DEFAULT_EXTERNAL_ARDUINO_STORAGE
 	#endif
 #endif
 
-#if defined(ESP8266) || defined(ESP31B)
-	#ifndef STORAGE_SD_FORCE_DISABLE
-		#define STORAGE_SD_ENABLED
+//#if defined(ESP8266) || defined(ESP31B)
+//	#ifndef STORAGE_EXTERNAL_FORCE_DISABLE
+//		#define STORAGE_EXTERNAL_ENABLED
+//	#endif
+//	#ifndef STORAGE_INTERNAL_FORCE_DISABLE
+//		#define STORAGE_INTERNAL_ENABLED
+//	#endif
+//#elif defined(ESP32)
+//	#ifndef STORAGE_EXTERNAL_FORCE_DISABLE
+//		#define STORAGE_EXTERNAL_ENABLED
+//	#endif
+//	#ifndef STORAGE_INTERNAL_FORCE_DISABLE
+//		#define STORAGE_INTERNAL_ENABLED
+//	#endif
+//#elif defined(ARDUINO_ARCH_STM32)
+//	#ifndef STORAGE_EXTERNAL_FORCE_DISABLE
+//		#define STORAGE_EXTERNAL_ENABLED
+//	#endif
+//#else
+//	#ifndef STORAGE_EXTERNAL_FORCE_DISABLE
+//		#define STORAGE_EXTERNAL_ENABLED
+//	#endif
+//#endif
+
+#ifdef ENABLE_ATTACHMENTS
+	#if !defined(STORAGE_EXTERNAL_FORCE_DISABLE) && (EXTERNAL_STORAGE != STORAGE_NONE)
+		#define STORAGE_EXTERNAL_ENABLED
 	#endif
-	#ifndef STORAGE_INTERNAL_FORCE_DISABLE
+	#if !defined(STORAGE_INTERNAL_FORCE_DISABLE) && (INTERNAL_STORAGE != STORAGE_NONE)
 		#define STORAGE_INTERNAL_ENABLED
-	#endif
-#elif defined(ESP32)
-	#ifndef STORAGE_SD_FORCE_DISABLE
-		#define STORAGE_SD_ENABLED
-	#endif
-	#ifndef STORAGE_INTERNAL_FORCE_DISABLE
-		#define STORAGE_INTERNAL_ENABLED
-	#endif
-#else
-	#ifndef STORAGE_SD_FORCE_DISABLE
-		#define STORAGE_SD_ENABLED
 	#endif
 #endif
-
 
 // Includes and defined based on Network Type
 #if(EMAIL_NETWORK_TYPE == NETWORK_ESP8266_ASYNC)
@@ -134,17 +156,12 @@
 
 #elif(EMAIL_NETWORK_TYPE == NETWORK_W5100 || EMAIL_NETWORK_TYPE == NETWORK_ETHERNET_ENC)
 
-#ifdef STM32_DEVICE
-#define EMAIL_NETWORK_CLASS TCPClient
-#define EMAIL_NETWORK_SERVER_CLASS TCPServer
-#else
 #include <Ethernet.h>
 #include <SPI.h>
 #define EMAIL_NETWORK_CLASS EthernetClient
 #define EMAIL_NETWORK_SERVER_CLASS EthernetServer
-#endif
 
-#elif(EMAIL_NETWORK_TYPE == NETWORK_ENC28J60)
+#elif(EMAIL_NETWORK_TYPE == NETWORK_ENC28J60 || EMAIL_NETWORK_TYPE == NETWORK_UIPETHERNET)
 
 #include <UIPEthernet.h>
 
@@ -179,6 +196,13 @@
 #define EMAIL_NETWORK_CLASS EthernetClient
 #define EMAIL_NETWORK_SERVER_CLASS EthernetServer
 
+#elif(EMAIL_NETWORK_TYPE == NETWORK_ETHERNET_STM)
+
+#include <Ethernet_STM.h>
+#include <SPI.h>
+#define EMAIL_NETWORK_CLASS EthernetClient
+#define EMAIL_NETWORK_SERVER_CLASS EthernetServer
+
 #elif(EMAIL_NETWORK_TYPE == NETWORK_WiFiNINA)
 
 #include <WiFiNINA.h>
@@ -190,43 +214,79 @@
 #error "no network type selected!"
 #endif
 
-#ifdef SSLCLIENT_WRAPPER
-	#include <SSLClient.h>
-	#include "trust_anchors.h"
-#endif
-
-#ifdef ENABLE_ATTACHMENTS
-	#ifdef STORAGE_INTERNAL_ENABLED
-		#if defined(ESP32)
+#ifdef STORAGE_INTERNAL_ENABLED
 //			#define FS_NO_GLOBALS
-			#if (DEFAULT_INTERNAL_ESP32_STORAGE == STORAGE_SPIFFS)
+		#if (INTERNAL_STORAGE == STORAGE_SPIFFS)
+			#if defined(ESP32)
 				#include <SPIFFS.h>
 				#define INTERNAL_STORAGE_CLASS SPIFFS
-			#elif (DEFAULT_INTERNAL_ESP32_STORAGE == STORAGE_LITTLEFS)
-				#include "LITTLEFS.h"
-				#define INTERNAL_STORAGE_CLASS LITTLEFS
-			#elif (DEFAULT_INTERNAL_ESP32_STORAGE == STORAGE_FFAT)
-				#include "FFat.h"
-				#define INTERNAL_STORAGE_CLASS FFat
-			#endif
-		#else
-			#if (DEFAULT_INTERNAL_ESP8266_STORAGE == STORAGE_SPIFFS)
+
+				#define EMAIL_FILE_READ (const char*)'r'
+			#elif defined(ESP8266)
 				#ifdef ARDUINO_ESP8266_RELEASE_2_4_2
-					#define FS_NO_GLOBALS
+					#define DIFFERENT_FILE_MANAGE
 				#endif
 				#include "FS.h"
 
 				#define INTERNAL_STORAGE_CLASS SPIFFS
-			#elif (DEFAULT_INTERNAL_ESP8266_STORAGE == STORAGE_LITTLEFS)
+				#define EMAIL_FILE_READ (const char*)'r'
+			#endif
+			#define EMAIL_FILE fs::File
+		#elif (INTERNAL_STORAGE == STORAGE_LITTLEFS)
+			#if defined(ESP32)
+				#if ESP_ARDUINO_VERSION_MAJOR >= 2
+						#include "FS.h"
+						#include "LittleFS.h"
+						#define INTERNAL_STORAGE_CLASS LittleFS
+				#else
+						#include "LITTLEFS.h"
+						#define INTERNAL_STORAGE_CLASS LITTLEFS
+				#endif
+			#else
 				#include "LittleFS.h"
 				#define INTERNAL_STORAGE_CLASS LittleFS
 			#endif
-		#endif
-	#endif
+			#define EMAIL_FILE_READ (const char*)'r'
+			#define EMAIL_FILE fs::File
+		#elif (INTERNAL_STORAGE == STORAGE_FFAT)
+			#include "FFat.h"
+			#define INTERNAL_STORAGE_CLASS FFat
+			#define EMAIL_FILE_READ 'r'
+			#define EMAIL_FILE fs::File
+		#elif (INTERNAL_STORAGE == STORAGE_SPIFM)
+			#include <SPI.h>
 
-	#ifdef STORAGE_SD_ENABLED
-		#include <SPI.h>
+			#include "SdFat.h"
+			#include "Adafruit_SPIFlash.h"
+
+			#define INTERNAL_STORAGE_CLASS fatfs
+			extern FatFileSystem INTERNAL_STORAGE_CLASS;
+
+			#define EMAIL_FILE_READ O_READ
+			#define EMAIL_FILE File
+		#endif
+#endif
+
+#ifdef STORAGE_EXTERNAL_ENABLED
+	#include <SPI.h>
+	#if (EXTERNAL_STORAGE == STORAGE_SDFAT2)
+		#include <SdFat.h>
+		#include <sdios.h>
+
+		#define EXTERNAL_STORAGE_CLASS sd
+		extern SdFat EXTERNAL_STORAGE_CLASS;
+
+		#define EMAIL_FILE_READ_EX FILE_READ
+		#define EMAIL_FILE_EX FsFile
+
+		#define DIFFERENT_FILE_MANAGE
+	#elif (EXTERNAL_STORAGE == STORAGE_SD)
 		#include <SD.h>
+
+		#define EXTERNAL_STORAGE_CLASS SD
+		#define EMAIL_FILE_READ_EX 'r'
+
+		#define EMAIL_FILE_EX File
 	#endif
 #endif
 
@@ -254,10 +314,20 @@ public:
 	EMailSender(const char* email_login, const char* email_password, const char* email_from);
 	EMailSender(const char* email_login, const char* email_password);
 
+#define STORAGE_SPIFFS (1)
+#define STORAGE_LITTLEFS (2)
+#define STORAGE_FFAT (3)
+#define STORAGE_SPIFM  (5) 	// Libraries Adafruit_SPIFlash and SdFat-Adafruit-Fork
+// EXTERNAL STORAGE
+#define STORAGE_SD (4)
+#define STORAGE_SDFAT2 (6) 	// Library SdFat version >= 2.0.2
+
+
 	enum StorageType {
 		EMAIL_STORAGE_TYPE_SPIFFS,
 		EMAIL_STORAGE_TYPE_LITTLE_FS,
 		EMAIL_STORAGE_TYPE_FFAT,
+		EMAIL_STORAGE_TYPE_SPIFM,
 		EMAIL_STORAGE_TYPE_SD
 	};
 
@@ -356,7 +426,7 @@ private:
     String _serverResponce;
 
 #ifdef SSLCLIENT_WRAPPER
-    Response awaitSMTPResponse(SSLClient &client, const char* resp = "", const char* respDesc = "", uint16_t timeOut = 20000);
+    Response awaitSMTPResponse(SSLClient &client, const char* resp = "", const char* respDesc = "", uint16_t timeOut = 10000);
 #else
     Response awaitSMTPResponse(EMAIL_NETWORK_CLASS &client, const char* resp = "", const char* respDesc = "", uint16_t timeOut = 10000);
 #endif
