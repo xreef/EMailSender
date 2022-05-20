@@ -116,6 +116,8 @@
 	#define ANALOG_PIN A7
 	#include <SSLClient.h>
 	#include "trust_anchors.h"
+
+	#define PUT_OUTSIDE_SCOPE_CLIENT_DECLARATION
 #endif
 
 #define SD_CS_PIN SS

@@ -443,30 +443,28 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 }
 
 #ifdef SSLCLIENT_WRAPPER
+#ifdef PUT_OUTSIDE_SCOPE_CLIENT_DECLARATION
 	// Initialize the SSL client library
 	// We input an EthernetClient, our trust anchors, and the analog pin
 	EMAIL_NETWORK_CLASS base_client;
 	SSLClient client(base_client, TAs, (size_t)TAs_NUM, ANALOG_PIN, 2);
 #else
-	EMAIL_NETWORK_CLASS client;
+	#error "You must put outside scope the client declaration if you want use SSLClient!"
+#endif
+#else
+	#ifdef PUT_OUTSIDE_SCOPE_CLIENT_DECLARATION
+		EMAIL_NETWORK_CLASS client;
+	#endif
 #endif
 
 EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte sizeOfCc,byte sizeOfCCn, EMailMessage &email, Attachments attachments)
 {
 #ifdef SSLCLIENT_WRAPPER
 	DEBUG_PRINTLN(F("SSLClient active!"));
-//	DEBUG_PRINTLN(F("Instantiate baseClient!"));
-//delay(1000);
-//	EMAIL_NETWORK_CLASS baseClient;
-//	delay(1000);
-//	DEBUG_PRINTLN(F("Wrap baseClient!"));
-//	SSLClient client(baseClient, this->trust_anchors, (size_t)this->trust_anchors_num, this->analog_pin, this->max_sessions, SSLClient::SSL_DUMP);
-////	SSLClient client(baseClient, TAs, (size_t)TAs_NUM, A7, 1, SSLClient::SSL_INFO);
-//
-//	DEBUG_PRINTLN(F("Wraped baseClient!"));
 #else
-//	EMAIL_NETWORK_CLASS client;
-//	SSLClient client(base_client, TAs, (size_t)TAs_NUM, A5);
+	#ifndef PUT_OUTSIDE_SCOPE_CLIENT_DECLARATION
+	  EMAIL_NETWORK_CLASS client;
+	#endif
 
   DEBUG_PRINT(F("Insecure client:"));
   DEBUG_PRINTLN(this->isSecure);
