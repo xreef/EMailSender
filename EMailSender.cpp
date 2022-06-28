@@ -521,11 +521,15 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 	  return response;
   }
 
+  if (this->additionalResponseLineOnConnection > 0){
+	  for (int i = 0; i<=this->additionalResponseLineOnConnection; i++) awaitSMTPResponse(client);
+  }
+
   String commandHELO = "HELO";
   if (this->useEHLO == true) {
 	  commandHELO = "EHLO";
   }
-  String helo = commandHELO + " "+String(publicIPDescriptor)+": ";
+  String helo = commandHELO + " "+String(publicIPDescriptor)+" ";
   DEBUG_PRINTLN(helo);
   client.println(helo);
 
@@ -538,6 +542,10 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 
   if (this->useEHLO == true) {
 	  for (int i = 0; i<=6; i++) awaitSMTPResponse(client);
+  }
+
+  if (this->additionalResponseLineOnHELO > 0){
+	  for (int i = 0; i<=this->additionalResponseLineOnHELO; i++) awaitSMTPResponse(client);
   }
 
   if (useAuth){

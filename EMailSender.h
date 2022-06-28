@@ -196,6 +196,13 @@
 #define EMAIL_NETWORK_CLASS EthernetClient
 #define EMAIL_NETWORK_SERVER_CLASS EthernetServer
 
+#elif(EMAIL_NETWORK_TYPE == NETWORK_ETHERNET_2)
+
+#include <Ethernet2.h>
+#include <SPI.h>
+#define EMAIL_NETWORK_CLASS EthernetClient
+#define EMAIL_NETWORK_SERVER_CLASS EthernetServer
+
 #elif(EMAIL_NETWORK_TYPE == NETWORK_ETHERNET_STM)
 
 #include <Ethernet_STM.h>
@@ -406,6 +413,14 @@ public:
 	void setSASLLogin(bool isSASLLogin = false) {
 		this->isSASLLogin = isSASLLogin;
 	}
+
+	void setAdditionalResponseLineOnConnection(uint8_t numLines = 0) {
+		this->additionalResponseLineOnConnection = numLines;
+	}
+	void setAdditionalResponseLineOnHELO(uint8_t numLines = 0) {
+		this->additionalResponseLineOnHELO = numLines;
+	}
+
 private:
 	uint16_t smtp_port = 465;
 	char* smtp_server = strdup("smtp.gmail.com");
@@ -424,6 +439,9 @@ private:
 	bool useAuth = true;
 
     String _serverResponce;
+
+    uint8_t additionalResponseLineOnConnection = 0;
+    uint8_t additionalResponseLineOnHELO = 0;
 
 #ifdef SSLCLIENT_WRAPPER
     Response awaitSMTPResponse(SSLClient &client, const char* resp = "", const char* respDesc = "", uint16_t timeOut = 10000);
