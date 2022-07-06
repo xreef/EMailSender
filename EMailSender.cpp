@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 3.0.0
+ * VERSION: 3.0.3
  *
  * https://www.mischianti.org/
  *
@@ -523,6 +523,13 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 
   if (this->additionalResponseLineOnConnection > 0){
 	  for (int i = 0; i<=this->additionalResponseLineOnConnection; i++) awaitSMTPResponse(client);
+		response = awaitSMTPResponse(client, "220", "Connection response error ", 2500);
+		if (!response.status && response.code == F("1")) {
+			response.desc = F("Connection error! Reduce the HELO response line!");
+		}
+		client.flush();
+		client.stop();
+		return response;
   }
 
   String commandHELO = "HELO";
@@ -540,12 +547,32 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 	  return response;
   }
 
-  if (this->useEHLO == true) {
-	  for (int i = 0; i<=6; i++) awaitSMTPResponse(client);
+//  if (this->useEHLO == true) {
+//	  for (int i = 0; i<=6; i++) awaitSMTPResponse(client);
+//  }
+//
+//  for (int i = 0; i <= 6; i++) {
+//	response = awaitSMTPResponse(client, "250", "EHLO error", 2500);
+//	if (!response.status && response.code == F("1")) {
+//		DEBUG_PRINTLN(response.desc);
+//		break;
+//	}
+//  }
+
+  if (this->useEHLO == true && this->additionalResponseLineOnHELO == 0) {
+	  this->additionalResponseLineOnHELO = DEFAULT_EHLO_RESPONSE_COUNT;
   }
 
   if (this->additionalResponseLineOnHELO > 0){
-	  for (int i = 0; i<=this->additionalResponseLineOnHELO; i++) awaitSMTPResponse(client);
+	  for (int i = 0; i<=this->additionalResponseLineOnHELO; i++) {
+			response = awaitSMTPResponse(client, "250", "EHLO error", 2500);
+			if (!response.status && response.code == F("1")) {
+				response.desc = F("Timeout! Reduce the HELO response line!");
+			}
+			client.flush();
+			client.stop();
+			return response;
+	  }
   }
 
   if (useAuth){

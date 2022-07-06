@@ -23,5 +23,7 @@ setUseAuth		KEYWORD2
 setPublicIpDescriptor	KEYWORD2
 setEHLOCommand	KEYWORD2
 setSASLLogin	KEYWORD2
+setAdditionalResponseLineOnConnection	KEYWORD2
+setAdditionalResponseLineOnHELO	KEYWORD2
 
 send	KEYWORD2
