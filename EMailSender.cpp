@@ -1,8 +1,8 @@
 /*
- * EMail Sender Arduino, esp8266 and esp32 library to send email
+ * EMail Sender Arduino, esp8266, stm32 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 3.0.3
+ * VERSION: 3.0.4
  *
  * https://www.mischianti.org/
  *
@@ -807,8 +807,13 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 		  client.print(F("Content-Disposition: attachment; filename="));
 		  client.print(attachments.fileDescriptor[i].filename);
 		  client.println(F("\n"));
+		  DEBUG_PRINT(F("Readed filename: "));
+		  DEBUG_PRINTLN(attachments.fileDescriptor[i].filename);
 
-			int clientCount = 0;
+		  DEBUG_PRINT(F("Check if exist: "));
+		  DEBUG_PRINTLN(INTERNAL_STORAGE_CLASS.exists(attachments.fileDescriptor[i].url.c_str()));
+
+		  int clientCount = 0;
 
 #ifdef STORAGE_INTERNAL_ENABLED
 			if (attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_SPIFFS ||
@@ -817,6 +822,8 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 				attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_FFAT){
 	#ifdef OPEN_CLOSE_INTERNAL
 				if (!INTERNAL_STORAGE_CLASS.exists(attachments.fileDescriptor[i].url.c_str())){
+				    DEBUG_PRINTLN(F("Begin internal storage!"));
+
 					#if (INTERNAL_STORAGE == STORAGE_SPIFM)
 					Adafruit_FlashTransport_SPI flashTransport(SPIFM_CS_PIN, SPI); // Set CS and SPI interface
 					Adafruit_SPIFlash flash(&flashTransport);
@@ -850,11 +857,16 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 					spiffsActive = true;
 					DEBUG_PRINTLN("SPIFFS BEGIN, ACTIVE");
 				} // Close INTERNAL_STORAGE_CLASS.exists
+			} // Close storageType
+
 	#endif
 
+				DEBUG_PRINT(F("Try to open "));
+				DEBUG_PRINTLN(attachments.fileDescriptor[i].url);
 				EMAIL_FILE myFile = INTERNAL_STORAGE_CLASS.open(attachments.fileDescriptor[i].url, EMAIL_FILE_READ);
 				  if(myFile) {
-//					  DEBUG_PRINTLN(myFile.name());
+					  DEBUG_PRINT(F("Filename -> "));
+					  DEBUG_PRINTLN(myFile.name());
 					  if (attachments.fileDescriptor[i].encode64){
 						  encode(&myFile, &client);
 					  }else{
@@ -879,7 +891,6 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 					  return response;
 				  } // Close myfile
 
-			} // Close storageType
 #endif
 #ifdef STORAGE_EXTERNAL_ENABLED
 			if (attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_SD){

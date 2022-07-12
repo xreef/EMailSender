@@ -26,6 +26,7 @@ Arduino (support W5100 like must be set, and ENC28J60 via UIPEthernet), esp8266 
 #### [Inviare email con allegati (libreria v2.x): esp32 e esp8266](https://www.mischianti.org/it/2020/06/16/inviare-email-con-allegati-libreria-v2-x-esp32-e-esp8266-part-2/)
 
 ## Change log
+ - 12/07/2022: v3.0.4 Fix attach on SPIFFS and LittleFS
  - 06/07/2022: v3.0.3 Manage multiple response message after connect and HELO ([#26](https://github.com/xreef/EMailSender/issues/26))
  - 03/06/2022: v3.0.2 Add possibility to set additionalResponseLineOnConnection with void setAdditionalResponseLineOnConnection(uint8_t numLines = 0), needed if on connection you receive 220 response as error, and add Ethernet2.
  - 20/05/2022: v3.0.1 Put inside scope the client declaration (if you don't use SSLClient) for backward compatibility

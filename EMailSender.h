@@ -1,8 +1,8 @@
 /*
- * EMail Sender Arduino, esp8266 and esp32 library to send email
+ * EMail Sender Arduino, esp8266, stm32 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 3.0.3
+ * VERSION: 3.0.4
  *
  * https://www.mischianti.org/
  *
@@ -228,7 +228,7 @@
 				#include <SPIFFS.h>
 				#define INTERNAL_STORAGE_CLASS SPIFFS
 
-				#define EMAIL_FILE_READ (const char*)'r'
+				#define EMAIL_FILE_READ "r"
 			#elif defined(ESP8266)
 				#ifdef ARDUINO_ESP8266_RELEASE_2_4_2
 					#define DIFFERENT_FILE_MANAGE
@@ -236,7 +236,7 @@
 				#include "FS.h"
 
 				#define INTERNAL_STORAGE_CLASS SPIFFS
-				#define EMAIL_FILE_READ (const char*)'r'
+				#define EMAIL_FILE_READ "r"
 			#endif
 			#define EMAIL_FILE fs::File
 		#elif (INTERNAL_STORAGE == STORAGE_LITTLEFS)
@@ -253,7 +253,7 @@
 				#include "LittleFS.h"
 				#define INTERNAL_STORAGE_CLASS LittleFS
 			#endif
-			#define EMAIL_FILE_READ (const char*)'r'
+			#define EMAIL_FILE_READ "r"
 			#define EMAIL_FILE fs::File
 		#elif (INTERNAL_STORAGE == STORAGE_FFAT)
 			#include "FFat.h"
