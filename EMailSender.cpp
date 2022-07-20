@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266, stm32 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 3.0.4
+ * VERSION: 3.0.5
  *
  * https://www.mischianti.org/
  *
@@ -522,14 +522,15 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
   }
 
   if (this->additionalResponseLineOnConnection > 0){
-	  for (int i = 0; i<=this->additionalResponseLineOnConnection; i++) awaitSMTPResponse(client);
+	  for (int i = 0; i<=this->additionalResponseLineOnConnection; i++) {
 		response = awaitSMTPResponse(client, "220", "Connection response error ", 2500);
 		if (!response.status && response.code == F("1")) {
 			response.desc = F("Connection error! Reduce the HELO response line!");
+			client.flush();
+			client.stop();
+			return response;
 		}
-		client.flush();
-		client.stop();
-		return response;
+	  }
   }
 
   String commandHELO = "HELO";
@@ -565,13 +566,13 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 
   if (this->additionalResponseLineOnHELO > 0){
 	  for (int i = 0; i<=this->additionalResponseLineOnHELO; i++) {
-			response = awaitSMTPResponse(client, "250", "EHLO error", 2500);
-			if (!response.status && response.code == F("1")) {
-				response.desc = F("Timeout! Reduce the HELO response line!");
-			}
+		response = awaitSMTPResponse(client, "250", "EHLO error", 2500);
+		if (!response.status && response.code == F("1")) {
+			response.desc = F("Timeout! Reduce the HELO response line!");
 			client.flush();
 			client.stop();
 			return response;
+		}
 	  }
   }
 
