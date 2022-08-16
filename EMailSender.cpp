@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266, stm32 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 3.0.5
+ * VERSION: 3.0.6
  *
  * https://www.mischianti.org/
  *
@@ -468,33 +468,34 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 
   DEBUG_PRINT(F("Insecure client:"));
   DEBUG_PRINTLN(this->isSecure);
+	#ifndef FORCE_DISABLE_SSL
+		#if (EMAIL_NETWORK_TYPE == NETWORK_ESP8266 || EMAIL_NETWORK_TYPE == NETWORK_ESP8266_242)
+			#ifndef ARDUINO_ESP8266_RELEASE_2_4_2
+			  if (this->isSecure == false){
+				  client.setInsecure();
+				  bool mfln = client.probeMaxFragmentLength(this->smtp_server, this->smtp_port, 512);
 
-	#if (EMAIL_NETWORK_TYPE == NETWORK_ESP8266 || EMAIL_NETWORK_TYPE == NETWORK_ESP8266_242)
-		#ifndef ARDUINO_ESP8266_RELEASE_2_4_2
-		  if (this->isSecure == false){
-			  client.setInsecure();
-			  bool mfln = client.probeMaxFragmentLength(this->smtp_server, this->smtp_port, 512);
+				  DEBUG_PRINT("MFLN supported: ");
+				  DEBUG_PRINTLN(mfln?"yes":"no");
 
-			  DEBUG_PRINT("MFLN supported: ");
-			  DEBUG_PRINTLN(mfln?"yes":"no");
-
-			  if (mfln) {
-				  client.setBufferSizes(512, 512);
+				  if (mfln) {
+					  client.setBufferSizes(512, 512);
+				  }
 			  }
-		  }
-		#endif
-	#elif (EMAIL_NETWORK_TYPE == NETWORK_ESP32)
-	//	  String coreVersion = String(ESP.getSdkVersion());
-	//	  uint8_t firstdot = coreVersion.indexOf('.');
-	//
-	//	  DEBUG_PRINTLN(coreVersion.substring(1, coreVersion.indexOf('.', firstdot+1)).toFloat());
-	//	  DEBUG_PRINTLN(coreVersion.substring(1, coreVersion.indexOf('.', firstdot+1)).toFloat() >= 3.3f);
-	//	  if (coreVersion.substring(1, coreVersion.indexOf('.', firstdot+1)).toFloat() >= 3.3f) {
-	//		  client.setInsecure();
-	//	  }
-		#include <core_version.h>
-		#if ((!defined(ARDUINO_ESP32_RELEASE_1_0_4)) && (!defined(ARDUINO_ESP32_RELEASE_1_0_3)) && (!defined(ARDUINO_ESP32_RELEASE_1_0_2)))
-			  client.setInsecure();
+			#endif
+		#elif (EMAIL_NETWORK_TYPE == NETWORK_ESP32)
+		//	  String coreVersion = String(ESP.getSdkVersion());
+		//	  uint8_t firstdot = coreVersion.indexOf('.');
+		//
+		//	  DEBUG_PRINTLN(coreVersion.substring(1, coreVersion.indexOf('.', firstdot+1)).toFloat());
+		//	  DEBUG_PRINTLN(coreVersion.substring(1, coreVersion.indexOf('.', firstdot+1)).toFloat() >= 3.3f);
+		//	  if (coreVersion.substring(1, coreVersion.indexOf('.', firstdot+1)).toFloat() >= 3.3f) {
+		//		  client.setInsecure();
+		//	  }
+			#include <core_version.h>
+			#if ((!defined(ARDUINO_ESP32_RELEASE_1_0_4)) && (!defined(ARDUINO_ESP32_RELEASE_1_0_3)) && (!defined(ARDUINO_ESP32_RELEASE_1_0_2)))
+				  client.setInsecure();
+			#endif
 		#endif
 	#endif
 #endif

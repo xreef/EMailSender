@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266, stm32 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 3.0.5
+ * VERSION: 3.0.6
  *
  * https://www.mischianti.org/
  *
@@ -37,6 +37,7 @@
 // Uncomment if you use esp8266 core <= 2.4.2
 //#define ARDUINO_ESP8266_RELEASE_2_4_2
 
+// If you want disable attachments and save memory comment this define
 #define ENABLE_ATTACHMENTS
 
 // Uncomment to enable printing out nice debug messages.
@@ -69,6 +70,10 @@
 #define NETWORK_UIPETHERNET (11)
 #define NETWORK_ETHERNET_2 (12)
 
+// if you want force disable SSL if present uncomment this define
+// #define FORCE_DISABLE_SSL
+
+// If you want add a wrapper to emulate SSL over Client like EthernetClient
 // #define SSLCLIENT_WRAPPER
 
 // esp8266 microcontrollers configuration

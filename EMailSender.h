@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266, stm32 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 3.0.5
+ * VERSION: 3.0.6
  *
  * https://www.mischianti.org/
  *
@@ -213,7 +213,7 @@
 #elif(EMAIL_NETWORK_TYPE == NETWORK_WiFiNINA)
 
 #include <WiFiNINA.h>
-//#define EMAIL_NETWORK_CLASS WiFiSSLClient
+#define EMAIL_NETWORK_CLASS WiFiClient
 #define EMAIL_NETWORK_SSL_CLASS WiFiSSLClient
 #define EMAIL_NETWORK_SERVER_CLASS WiFiServer
 
@@ -298,7 +298,9 @@
 #endif
 
 #ifdef EMAIL_NETWORK_SSL_CLASS
-#define EMAIL_NETWORK_CLASS EMAIL_NETWORK_SSL_CLASS
+	#ifndef FORCE_DISABLE_SSL
+		#define EMAIL_NETWORK_CLASS EMAIL_NETWORK_SSL_CLASS
+	#endif
 #endif
 
 #define OPEN_CLOSE_INTERNAL
