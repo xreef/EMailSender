@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266, stm32 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 3.0.6
+ * VERSION: 3.0.7
  *
  * https://www.mischianti.org/
  *
@@ -62,6 +62,7 @@
 #define NETWORK_W5100 (2)
 #define NETWORK_ENC28J60 (3)
 #define NETWORK_ESP32 (4)
+#define NETWORK_RP2040_WIFI (4)
 #define NETWORK_ESP32_ETH (5)
 #define NETWORK_WiFiNINA (7)
 #define NETWORK_ETHERNET_LARGE (8)
@@ -102,9 +103,15 @@
 #endif
 // Arduino SAMD microcontrollers configuration
 #ifndef DEFAULT_EMAIL_NETWORK_TYPE_ARDUINO_SAMD
-	#define DEFAULT_EMAIL_NETWORK_TYPE_SAMD 	NETWORK_WiFiNINA
+	#define DEFAULT_EMAIL_NETWORK_TYPE_SAMD NETWORK_WiFiNINA
 	#define DEFAULT_INTERNAL_ARDUINO_SAMD_STORAGE STORAGE_NONE
 	#define DEFAULT_EXTERNAL_ARDUINO_SAMD_STORAGE STORAGE_SD
+#endif
+// Arduino SAMD microcontrollers configuration
+#ifndef DEFAULT_EMAIL_NETWORK_TYPE_RP2040
+    #define DEFAULT_EMAIL_NETWORK_TYPE_RP2040 NETWORK_RP2040_WIFI
+    #define DEFAULT_INTERNAL_ARDUINO_RP2040_STORAGE STORAGE_LITTLEFS
+    #define DEFAULT_EXTERNAL_ARDUINO_RP2040_STORAGE STORAGE_NONE
 #endif
 
 #ifdef SSLCLIENT_WRAPPER
