@@ -26,6 +26,7 @@ Arduino (support W5100 like must be set, and ENC28J60 via UIPEthernet), esp8266 
 #### [Inviare email con allegati (libreria v2.x): esp32 e esp8266](https://www.mischianti.org/it/2020/06/16/inviare-email-con-allegati-libreria-v2-x-esp32-e-esp8266-part-2/)
 
 ## Change log
+ - 05/01/2023: v3.0.8 Fix distribution list examples
  - 22/09/2022: v3.0.7 Add Raspberry Pi Pico W and rp2040 boards
  - 20/09/2022: v3.0.7 Add STM32 management for https://github.com/rogerclarkmelbourne/Arduino_STM32 library.
  - 16/08/2022: v3.0.6 Add FORCE_DISABLE_SSL to disable SSL if present
