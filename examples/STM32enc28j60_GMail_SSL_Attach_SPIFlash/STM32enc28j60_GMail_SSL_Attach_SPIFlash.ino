@@ -180,7 +180,7 @@ void setup() {
 //
 //    // Send to 3 different email first to C second to CC and third to CCn
 //    const char* arrayOfEmail[] = {"mischianti@gmail.com", "smtp.mischianti@gmail.com", "renzo.mischianti@gmail.com"};
-//    EMailSender::Response resp = emailSend.send(arrayOfEmail, 3, message);
+//    EMailSender::Response resp = emailSend.send(arrayOfEmail, 1, 1, 1, message);
 
 
    Serial.println("Sending status: ");
