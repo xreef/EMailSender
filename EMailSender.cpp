@@ -573,10 +573,14 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 	  for (int i = 0; i<=this->additionalResponseLineOnHELO; i++) {
 		response = awaitSMTPResponse(client, "250", "EHLO error", 2500);
 		if (!response.status && response.code == F("1")) {
-			response.desc = F("Timeout! Reduce the HELO response line!");
-			client.flush();
-			client.stop();
-			return response;
+			//if additionalResponseLineOnHELO is set to 255: wait out all code 250 responses, then continue
+			if (additionalResponseLineOnHELO == 255) break;
+			else {
+				response.desc = F("Timeout! Reduce additional HELO response line count or set it to 255!");
+				client.flush();
+				client.stop();
+				return response;
+			}
 		}
 	  }
   }
