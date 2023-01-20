@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266, stm32 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 3.0.9
+ * VERSION: 3.0.10
  *
  * https://www.mischianti.org/
  *
@@ -54,7 +54,8 @@
 #define STORAGE_SPIFM  (5) 	// Libraries Adafruit_SPIFlash and SdFat-Adafruit-Fork
 // EXTERNAL STORAGE
 #define STORAGE_SD (4)
-#define STORAGE_SDFAT2 (6) 	// Library SdFat version >= 2.0.2
+#define STORAGE_SDFAT2 (6) 					// Library SdFat version >= 2.0.2
+#define STORAGE_SDFAT_RP2040_ESP8266 (7) 	// Library ESP8266SdFat on Raspberry Pi Pico
 
 #define NETWORK_ESP8266_ASYNC (0)
 #define NETWORK_ESP8266 (1)
@@ -81,7 +82,7 @@
 #ifndef DEFAULT_EMAIL_NETWORK_TYPE_ESP8266
 	#define DEFAULT_EMAIL_NETWORK_TYPE_ESP8266 	NETWORK_ESP8266
 	#define DEFAULT_INTERNAL_ESP8266_STORAGE STORAGE_LITTLEFS
-	#define DEFAULT_EXTERNAL_ESP8266_STORAGE STORAGE_SD
+	#define DEFAULT_EXTERNAL_ESP8266_STORAGE STORAGE_NONE
 #endif
 // esp32 microcontrollers configuration
 #ifndef DEFAULT_EMAIL_NETWORK_TYPE_ESP32
@@ -107,11 +108,11 @@
 	#define DEFAULT_INTERNAL_ARDUINO_SAMD_STORAGE STORAGE_NONE
 	#define DEFAULT_EXTERNAL_ARDUINO_SAMD_STORAGE STORAGE_SD
 #endif
-// Arduino SAMD microcontrollers configuration
+// Raspberry Pi Pico (rp2040) configuration
 #ifndef DEFAULT_EMAIL_NETWORK_TYPE_RP2040
     #define DEFAULT_EMAIL_NETWORK_TYPE_RP2040 NETWORK_RP2040_WIFI
     #define DEFAULT_INTERNAL_ARDUINO_RP2040_STORAGE STORAGE_LITTLEFS
-    #define DEFAULT_EXTERNAL_ARDUINO_RP2040_STORAGE STORAGE_NONE
+    #define DEFAULT_EXTERNAL_ARDUINO_RP2040_STORAGE STORAGE_SDFAT_RP2040_ESP8266
 #endif
 
 #ifdef SSLCLIENT_WRAPPER
@@ -133,7 +134,10 @@
 	#define PUT_OUTSIDE_SCOPE_CLIENT_DECLARATION
 #endif
 
-#define DEFAULT_EHLO_RESPONSE_COUNT 255
+// This two value can take a number 1..20 or you can specify 'a'
+// but with auto you can lost specified response error
+#define DEFAULT_EHLO_RESPONSE_COUNT 6
+#define DEFAULT_CONNECTION_RESPONSE_COUNT 0
 
 #define SD_CS_PIN SS
 #define SPIFM_CS_PIN SS

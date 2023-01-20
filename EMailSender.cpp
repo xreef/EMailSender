@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266, stm32 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 3.0.9
+ * VERSION: 3.0.10
  *
  * https://www.mischianti.org/
  *
@@ -526,14 +526,26 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 	  return response;
   }
 
+  if (this->additionalResponseLineOnConnection == 0) {
+  	  if (DEFAULT_CONNECTION_RESPONSE_COUNT == 'a'){
+  	    this->additionalResponseLineOnConnection = 255;
+  	  } else {
+  	    this->additionalResponseLineOnConnection = DEFAULT_CONNECTION_RESPONSE_COUNT;
+  	  }
+  }
+
   if (this->additionalResponseLineOnConnection > 0){
 	  for (int i = 0; i<=this->additionalResponseLineOnConnection; i++) {
 		response = awaitSMTPResponse(client, "220", "Connection response error ", 2500);
-		if (!response.status && response.code == F("1")) {
-			response.desc = F("Connection error! Reduce the HELO response line!");
-			client.flush();
-			client.stop();
-			return response;
+		//if additionalResponseLineOnConnection is set to 255: wait out all code 250 responses, then continue
+        if (this->additionalResponseLineOnConnection == 255) break;
+        else {
+            if (!response.status && response.code == F("1")) {
+                response.desc = F("Connection error! Reduce the HELO response line!");
+                client.flush();
+                client.stop();
+                return response;
+            }
 		}
 	  }
   }
@@ -553,20 +565,12 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 	  return response;
   }
 
-//  if (this->useEHLO == true) {
-//	  for (int i = 0; i<=6; i++) awaitSMTPResponse(client);
-//  }
-//
-//  for (int i = 0; i <= 6; i++) {
-//	response = awaitSMTPResponse(client, "250", "EHLO error", 2500);
-//	if (!response.status && response.code == F("1")) {
-//		DEBUG_PRINTLN(response.desc);
-//		break;
-//	}
-//  }
-
   if (this->useEHLO == true && this->additionalResponseLineOnHELO == 0) {
-	  this->additionalResponseLineOnHELO = DEFAULT_EHLO_RESPONSE_COUNT;
+	  if (DEFAULT_EHLO_RESPONSE_COUNT == 'a'){
+	    this->additionalResponseLineOnHELO = 255;
+	  } else {
+	    this->additionalResponseLineOnHELO = DEFAULT_EHLO_RESPONSE_COUNT;
+	  }
   }
 
   if (this->additionalResponseLineOnHELO > 0){
@@ -574,7 +578,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 		response = awaitSMTPResponse(client, "250", "EHLO error", 2500);
 		if (!response.status && response.code == F("1")) {
 			//if additionalResponseLineOnHELO is set to 255: wait out all code 250 responses, then continue
-			if (additionalResponseLineOnHELO == 255) break;
+			if (this->additionalResponseLineOnHELO == 255) break;
 			else {
 				response.desc = F("Timeout! Reduce additional HELO response line count or set it to 255!");
 				client.flush();
@@ -907,7 +911,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 #ifdef OPEN_CLOSE_SD
 				 DEBUG_PRINTLN(F("SD Check"));
 				 if (!EXTERNAL_STORAGE_CLASS.exists(attachments.fileDescriptor[i].url.c_str())){
-#if EXTERNAL_STORAGE == STORAGE_SD || EXTERNAL_STORAGE == STORAGE_SDFAT2
+#if EXTERNAL_STORAGE == STORAGE_SD || EXTERNAL_STORAGE == STORAGE_SDFAT2 || EXTERNAL_STORAGE == STORAGE_SDFAT_RP2040_ESP8266
 					if(!EXTERNAL_STORAGE_CLASS.begin(SD_CS_PIN)){
 						  response.code = F("500");
 						  response.desc = F("Error on startup SD filesystem!");
@@ -986,7 +990,9 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 		  if (sdActive){
 			  DEBUG_PRINTLN(F("SD end"));
 		#ifndef ARDUINO_ESP8266_RELEASE_2_4_2
+			#if EXTERNAL_STORAGE != STORAGE_SDFAT_RP2040_ESP8266
 			  EXTERNAL_STORAGE_CLASS.end();
+			#endif
 		#endif
 			  DEBUG_PRINTLN(F("SD end 2"));
 		  }

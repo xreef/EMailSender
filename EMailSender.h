@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266, stm32 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 3.0.9
+ * VERSION: 3.0.10
  *
  * https://www.mischianti.org/
  *
@@ -280,7 +280,18 @@
 
 #ifdef STORAGE_EXTERNAL_ENABLED
 	#include <SPI.h>
-	#if (EXTERNAL_STORAGE == STORAGE_SDFAT2)
+	#if (EXTERNAL_STORAGE == STORAGE_SDFAT_RP2040_ESP8266)
+		#include <SdFat.h>
+		#include <sdios.h>
+
+		#define EXTERNAL_STORAGE_CLASS sd
+		extern SdFat EXTERNAL_STORAGE_CLASS;
+
+		#define EMAIL_FILE_READ_EX FILE_READ
+		#define EMAIL_FILE_EX File32
+
+		#define DIFFERENT_FILE_MANAGE
+	#elif (EXTERNAL_STORAGE == STORAGE_SDFAT2)
 		#include <SdFat.h>
 		#include <sdios.h>
 
@@ -334,6 +345,7 @@ public:
 // EXTERNAL STORAGE
 #define STORAGE_SD (4)
 #define STORAGE_SDFAT2 (6) 	// Library SdFat version >= 2.0.2
+#define STORAGE_SDFAT_RP2040_ESP8266 (7) 	// Library ESP8266SdFat on Raspberry Pi Pico
 
 
 	enum StorageType {
