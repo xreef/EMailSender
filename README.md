@@ -26,6 +26,7 @@ Arduino (support W5100 like must be set, and ENC28J60 via UIPEthernet), esp8266 
 #### [Inviare email con allegati (libreria v2.x): esp32 e esp8266](https://www.mischianti.org/it/2020/06/16/inviare-email-con-allegati-libreria-v2-x-esp32-e-esp8266-part-2/)
 
 ## Change log
+ - 16/02/2023: v3.0.11 Add support for Ethernet_Generic
  - 20/01/2023: v3.0.10 Add the management of ESP8266SdFat library on Raspberry Pi Pico [#forum](https://www.mischianti.org/forums/topic/raspberry-pico-w-emailsender)
  - 17/01/2023: v3.0.10 Add the mamagement of auto check of response number #36 thanks to @HACKER-3000 @H3
  - 13/01/2023: v3.0.9 Fix external storage error 404 ([#forum](https://www.mischianti.org/forums/topic/email-with-sd-files/)

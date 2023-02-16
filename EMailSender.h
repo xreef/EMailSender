@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266, stm32 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 3.0.10
+ * VERSION: 3.0.11
  *
  * https://www.mischianti.org/
  *
@@ -161,6 +161,13 @@
 #elif(EMAIL_NETWORK_TYPE == NETWORK_W5100 || EMAIL_NETWORK_TYPE == NETWORK_ETHERNET_ENC)
 
 #include <Ethernet.h>
+#include <SPI.h>
+#define EMAIL_NETWORK_CLASS EthernetClient
+#define EMAIL_NETWORK_SERVER_CLASS EthernetServer
+
+#elif(EMAIL_NETWORK_TYPE == NETWORK_ETHERNET_GENERIC)
+
+#include <Ethernet_Generic.h>
 #include <SPI.h>
 #define EMAIL_NETWORK_CLASS EthernetClient
 #define EMAIL_NETWORK_SERVER_CLASS EthernetServer

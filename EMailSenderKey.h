@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266, stm32 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 3.0.10
+ * VERSION: 3.0.11
  *
  * https://www.mischianti.org/
  *
@@ -61,6 +61,7 @@
 #define NETWORK_ESP8266 (1)
 #define NETWORK_ESP8266_242 (6)
 #define NETWORK_W5100 (2)
+#define NETWORK_ETHERNET		(2)		// Standard Arduino Ethernet library
 #define NETWORK_ENC28J60 (3)
 #define NETWORK_ESP32 (4)
 #define NETWORK_RP2040_WIFI (4)
@@ -71,6 +72,7 @@
 #define NETWORK_ETHERNET_STM (10)
 #define NETWORK_UIPETHERNET (11)
 #define NETWORK_ETHERNET_2 (12)
+#define NETWORK_ETHERNET_GENERIC	(13)	// Ethernet generic
 
 // if you want force disable SSL if present uncomment this define
 // #define FORCE_DISABLE_SSL
