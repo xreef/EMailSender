@@ -359,6 +359,11 @@
 	#define DEBUG_PRINTLN(...) {}
 #endif
 
+// Debug level for SSLClient
+#ifndef EMAIL_SENDER_SSL_CLIENT_DEBUG
+	#define EMAIL_SENDER_SSL_CLIENT_DEBUG 2
+#endif
+
 class EMailSender {
 public:
 	EMailSender(const char* email_login, const char* email_password, const char* email_from, const char* name_from, const char* smtp_server, uint16_t smtp_port );
