@@ -128,7 +128,11 @@
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 
-#define EMAIL_NETWORK_CLASS WiFiClient
+#ifndef FORCE_DISABLE_SSL
+	#define EMAIL_NETWORK_CLASS WiFiClientSecure
+#else
+    #define EMAIL_NETWORK_CLASS WiFiClient
+#endif
 #define EMAIL_NETWORK_SSL_CLASS WiFiClientSecure
 #define EMAIL_NETWORK_SERVER_CLASS WiFiServer
 
@@ -154,7 +158,11 @@
 #else
 #include <ESP31BWiFi.h>
 #endif
-#define EMAIL_NETWORK_CLASS WiFiClient
+#ifndef FORCE_DISABLE_SSL
+	#define EMAIL_NETWORK_CLASS WiFiClientSecure
+#else
+    #define EMAIL_NETWORK_CLASS WiFiClient
+#endif
 #define EMAIL_NETWORK_SSL_CLASS WiFiClientSecure
 #define EMAIL_NETWORK_SERVER_CLASS WiFiServer
 
@@ -190,14 +198,22 @@
 
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
-#define EMAIL_NETWORK_CLASS WiFiClient
+#ifndef FORCE_DISABLE_SSL
+	#define EMAIL_NETWORK_CLASS WiFiClientSecure
+#else
+    #define EMAIL_NETWORK_CLASS WiFiClient
+#endif
 #define EMAIL_NETWORK_SSL_CLASS WiFiClientSecure
 #define EMAIL_NETWORK_SERVER_CLASS WiFiServer
 
 #elif(EMAIL_NETWORK_TYPE == NETWORK_ESP32_ETH)
 
 #include <ETH.h>
-#define EMAIL_NETWORK_CLASS WiFiClient
+#ifndef FORCE_DISABLE_SSL
+	#define EMAIL_NETWORK_CLASS WiFiClientSecure
+#else
+    #define EMAIL_NETWORK_CLASS WiFiClient
+#endif
 #define EMAIL_NETWORK_SERVER_CLASS WiFiServer
 
 #elif(EMAIL_NETWORK_TYPE == NETWORK_ETHERNET_LARGE)
@@ -224,7 +240,11 @@
 #elif(EMAIL_NETWORK_TYPE == NETWORK_WiFiNINA)
 
 #include <WiFiNINA.h>
-#define EMAIL_NETWORK_CLASS WiFiClient
+#ifndef FORCE_DISABLE_SSL
+	#define EMAIL_NETWORK_CLASS WiFiClientSecure
+#else
+    #define EMAIL_NETWORK_CLASS WiFiClient
+#endif
 #define EMAIL_NETWORK_SSL_CLASS WiFiSSLClient
 #define EMAIL_NETWORK_SERVER_CLASS WiFiServer
 
@@ -321,7 +341,9 @@
 
 #ifdef EMAIL_NETWORK_SSL_CLASS
 	#ifndef FORCE_DISABLE_SSL
-		#define EMAIL_NETWORK_CLASS EMAIL_NETWORK_SSL_CLASS
+		#define EMAIL_NETWORK_CLASS WiFiClientSecure
+	#else
+	    #define EMAIL_NETWORK_CLASS WiFiClient
 	#endif
 #endif
 
@@ -335,6 +357,11 @@
 #else
 	#define DEBUG_PRINT(...) {}
 	#define DEBUG_PRINTLN(...) {}
+#endif
+
+// Debug level for SSLClient
+#ifndef EMAIL_SENDER_SSL_CLIENT_DEBUG
+	#define EMAIL_SENDER_SSL_CLIENT_DEBUG 2
 #endif
 
 class EMailSender {
