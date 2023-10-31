@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266, stm32 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 3.0.12
+ * VERSION: 3.0.13
  *
  * https://www.mischianti.org/
  *
@@ -133,7 +133,7 @@
 #else
     #define EMAIL_NETWORK_CLASS WiFiClient
 #endif
-#define EMAIL_NETWORK_SSL_CLASS WiFiClientSecure
+//#define EMAIL_NETWORK_SSL_CLASS WiFiClientSecure
 #define EMAIL_NETWORK_SERVER_CLASS WiFiServer
 
 #elif defined(ESP31B)
@@ -163,7 +163,7 @@
 #else
     #define EMAIL_NETWORK_CLASS WiFiClient
 #endif
-#define EMAIL_NETWORK_SSL_CLASS WiFiClientSecure
+//#define EMAIL_NETWORK_SSL_CLASS WiFiClientSecure
 #define EMAIL_NETWORK_SERVER_CLASS WiFiServer
 
 #elif(EMAIL_NETWORK_TYPE == NETWORK_W5100 || EMAIL_NETWORK_TYPE == NETWORK_ETHERNET_ENC)
@@ -203,17 +203,13 @@
 #else
     #define EMAIL_NETWORK_CLASS WiFiClient
 #endif
-#define EMAIL_NETWORK_SSL_CLASS WiFiClientSecure
+//#define EMAIL_NETWORK_SSL_CLASS WiFiClientSecure
 #define EMAIL_NETWORK_SERVER_CLASS WiFiServer
 
 #elif(EMAIL_NETWORK_TYPE == NETWORK_ESP32_ETH)
 
 #include <ETH.h>
-#ifndef FORCE_DISABLE_SSL
-	#define EMAIL_NETWORK_CLASS WiFiClientSecure
-#else
-    #define EMAIL_NETWORK_CLASS WiFiClient
-#endif
+#define EMAIL_NETWORK_CLASS WiFiClient
 #define EMAIL_NETWORK_SERVER_CLASS WiFiServer
 
 #elif(EMAIL_NETWORK_TYPE == NETWORK_ETHERNET_LARGE)
@@ -241,11 +237,11 @@
 
 #include <WiFiNINA.h>
 #ifndef FORCE_DISABLE_SSL
-	#define EMAIL_NETWORK_CLASS WiFiClientSecure
+	#define EMAIL_NETWORK_CLASS WiFiSSLClient
 #else
     #define EMAIL_NETWORK_CLASS WiFiClient
 #endif
-#define EMAIL_NETWORK_SSL_CLASS WiFiSSLClient
+//#define EMAIL_NETWORK_SSL_CLASS WiFiSSLClient
 #define EMAIL_NETWORK_SERVER_CLASS WiFiServer
 
 #else
@@ -339,13 +335,13 @@
 	#endif
 #endif
 
-#ifdef EMAIL_NETWORK_SSL_CLASS
-	#ifndef FORCE_DISABLE_SSL
-		#define EMAIL_NETWORK_CLASS WiFiClientSecure
-	#else
-	    #define EMAIL_NETWORK_CLASS WiFiClient
-	#endif
-#endif
+//#ifdef EMAIL_NETWORK_SSL_CLASS
+//	#ifndef FORCE_DISABLE_SSL
+//		#define EMAIL_NETWORK_CLASS WiFiClientSecure
+//	#else
+//	    #define EMAIL_NETWORK_CLASS WiFiClient
+//	#endif
+//#endif
 
 #define OPEN_CLOSE_INTERNAL
 #define OPEN_CLOSE_SD
