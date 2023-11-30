@@ -34,7 +34,9 @@
 
 #include "EMailSender.h"
 #include <stdio.h>
+#if defined(ESP32)
 #include <mbedtls/base64.h>
+#endif
 
 //#include <SPIFFS.h>
 //#include <LittleFS.h>
