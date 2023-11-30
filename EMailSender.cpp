@@ -34,6 +34,8 @@
 
 #include "EMailSender.h"
 #include <stdio.h>
+#include <mbedtls/base64.h>
+
 //#include <SPIFFS.h>
 //#include <LittleFS.h>
 
@@ -624,7 +626,70 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 //		  String auth = "AUTH PLAIN "+String(encode64(logPass));
 		  DEBUG_PRINTLN(auth);
 		  client.println(auth);
-	  }else{
+          }
+#if defined(ESP32)
+	  else if (this->isCramMD5Login == true) {
+		  DEBUG_PRINTLN(F("AUTH CRAM-MD5"));
+		  client.println(F("AUTH CRAM-MD5"));
+
+                  // read back the base64 encoded digest.
+		  //
+                  response = awaitSMTPResponse(client,"334","No digest error");
+                  if (!response.status) {
+			client.flush(); 
+			client.stop(); 
+			return response; 
+		  };
+		  _serverResponce = _serverResponce.substring(4); // '334<space>'
+
+		  size_t b64l = _serverResponce.length()-1; // C vs C++ counting of \0
+		  const unsigned char * b64 = (const unsigned char *)_serverResponce.c_str();
+                  DEBUG_PRINTLN("B64digest="+String((char *)b64) + " Len=" + String((int)b64l));
+
+		  unsigned char digest[256];
+		  size_t len;
+
+		  int e = mbedtls_base64_decode(digest, sizeof(digest), &len, b64, b64l);
+                  if (e || len < 3 || len >= 256) {
+			response.code = F("999"); 
+			response.desc = F("Invalid digest"); 
+			response.status = false; 
+			client.flush(); 
+			client.stop(); 
+			return response; 
+		  };
+
+		  // calculate HMAC with the password as the key of this digest.
+		  //
+		  mbedtls_md_context_t ctx;
+		  mbedtls_md_type_t md_type = MBEDTLS_MD_MD5;
+		  unsigned char md5[16];
+
+		  mbedtls_md_init(&ctx);
+		  mbedtls_md_setup(&ctx, mbedtls_md_info_from_type(md_type), 1);
+		  mbedtls_md_hmac_starts(&ctx, 
+			(const unsigned char *)this->email_password, strlen(this->email_password));
+		  mbedtls_md_hmac_update(&ctx, digest, len);
+		  mbedtls_md_hmac_finish(&ctx, md5);
+		  mbedtls_md_free(&ctx);
+
+                  // build an output string of the username followed by the __lowercase__ hex of the md5
+		  //
+                  String rsp = String(this->email_login) + " ";
+                  for(int i = 0; i < sizeof(md5); i++) {
+			unsigned char c = md5[i];
+			char h[16+1] = "0123456789abcdef";
+			rsp += String(h[ (c >> 4) &0xF]) +  String(h[ (c >> 0) &0xF]);
+		  };
+
+		  // And submit this to the server as a login string.
+		  DEBUG_PRINTLN(encode64((char*)rsp.c_str()));
+		  client.println(encode64((char*)rsp.c_str()));
+
+ 		  // now exepct the normal login confirmation to continue.
+	}
+#endif 
+	  else{
 		  DEBUG_PRINTLN(F("AUTH LOGIN:"));
 		  client.println(F("AUTH LOGIN"));
 		  awaitSMTPResponse(client);
