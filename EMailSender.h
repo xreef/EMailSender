@@ -462,6 +462,13 @@ public:
 		this->isSASLLogin = isSASLLogin;
 	}
 
+#if defined(ESP32)
+	// Conditional - as it relies on considerable crypto infra.
+ 	void setCramMD5Login(bool onoff= false) {
+ 		this->isCramMD5Login = onoff;
+ 	}
+#endif
+
 	void setAdditionalResponseLineOnConnection(uint8_t numLines = 0) {
 		this->additionalResponseLineOnConnection = numLines;
 	}
@@ -485,6 +492,7 @@ private:
 	bool isSASLLogin = false;
 
 	bool useAuth = true;
+        bool isCramMD5Login = false;
 
     String _serverResponce;
 
