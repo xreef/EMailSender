@@ -41,7 +41,7 @@
 #define ENABLE_ATTACHMENTS
 
 // Uncomment to enable printing out nice debug messages.
-//#define EMAIL_SENDER_DEBUG
+#define EMAIL_SENDER_DEBUG
 
 // Define where debug output will be printed.
 #define DEBUG_PRINTER Serial
@@ -73,6 +73,7 @@
 #define NETWORK_UIPETHERNET (11)
 #define NETWORK_ETHERNET_2 (12)
 #define NETWORK_ETHERNET_GENERIC	(13)	// Ethernet generic
+#define NETWORK_MBED_WIFI	(14)	// Arduino GIGA R1 WiFi
 
 // if you want force disable SSL if present uncomment this define
 // #define FORCE_DISABLE_SSL
@@ -115,6 +116,12 @@
     #define DEFAULT_EMAIL_NETWORK_TYPE_RP2040 NETWORK_RP2040_WIFI
     #define DEFAULT_INTERNAL_ARDUINO_RP2040_STORAGE STORAGE_LITTLEFS
     #define DEFAULT_EXTERNAL_ARDUINO_RP2040_STORAGE STORAGE_NONE
+#endif
+// Arduino MBED microcontrollers configuration
+#ifndef DEFAULT_EMAIL_NETWORK_TYPE_ARDUINO_MBED
+	#define DEFAULT_EMAIL_NETWORK_TYPE_MBED NETWORK_MBED_WIFI
+	#define DEFAULT_INTERNAL_ARDUINO_MBED_STORAGE STORAGE_NONE
+	#define DEFAULT_EXTERNAL_ARDUINO_MBED_STORAGE STORAGE_SD
 #endif
 
 #ifdef SSLCLIENT_WRAPPER
