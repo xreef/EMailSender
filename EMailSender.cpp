@@ -286,6 +286,46 @@ void encodeblock(unsigned char in[3],unsigned char out[4],int len) {
 						}
 						}
 
+			#elif (EXTERNAL_STORAGE == STORAGE_USB_HOST_MBED)
+					void encode(EMAIL_FILE_EX *file, EMAIL_NETWORK_CLASS *client) {
+						char in[3],out[4];
+						int i,len,blocksout=0;
+
+						  while (fgets(in, 3, file) != NULL) {
+							  encodeblock((unsigned char*)in,(unsigned char*)out,len);
+							  client->write(out, 4);
+							  blocksout++;
+								if (blocksout>=19){
+									if (blocksout) {
+										client->print("\r\n");
+									}
+									blocksout=0;
+								}
+
+						  }
+						  client->print("\r\n");
+
+//						while (file->available()!=0) {
+//						len=0;
+//							for (i=0;i<3;i++){
+//								in[i]=(unsigned char) file->read();
+//									if (file->available()!=0) len++;
+//											else in[i]=0;
+//							}
+//							if (len){
+//								encodeblock(in,out,len);
+//						//         for(i=0;i<4;i++) client->write(out[i]);
+//								client->write(out, 4);
+//								blocksout++; }
+//							if (blocksout>=19||file->available()==0){
+//								if (blocksout) {
+//									client->print("\r\n");
+//								}
+//								blocksout=0;
+//							}
+//						}
+					}
+
 			#else
 					void encode(EMAIL_FILE_EX *file, EMAIL_NETWORK_CLASS *client) {
 						unsigned char in[3],out[4];
@@ -310,7 +350,7 @@ void encodeblock(unsigned char in[3],unsigned char out[4],int len) {
 								blocksout=0;
 							}
 						}
-						}
+					}
 			#endif
 
 		#endif
@@ -910,7 +950,9 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 			if (attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_SD){
 #ifdef OPEN_CLOSE_SD
 				 DEBUG_PRINTLN(F("SD Check"));
+#ifndef EXTERNAL_STORAGE == STORAGE_USB_HOST_MBED
 				 if (!EXTERNAL_STORAGE_CLASS.exists(attachments.fileDescriptor[i].url.c_str())){
+#endif
 #if EXTERNAL_STORAGE == STORAGE_SD || EXTERNAL_STORAGE == STORAGE_SDFAT2 || EXTERNAL_STORAGE == STORAGE_SDFAT_RP2040_ESP8266
 					if(!EXTERNAL_STORAGE_CLASS.begin(SD_CS_PIN)){
 						  response.code = F("500");
@@ -934,12 +976,68 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 
 					  return response;
 				  }
+#elif EXTERNAL_STORAGE == STORAGE_USB_HOST_MBED
+				  EXTERNAL_HOST_CLASS.connect();
+
+				  while (!EXTERNAL_HOST_CLASS.connected()) {
+				    //while (!port.connected()) {
+				    delay(1000);
+				  }
+
+				  DEBUG_PRINTLN("Mounting USB device...");
+				  int err =  EXTERNAL_STORAGE_CLASS.mount(&EXTERNAL_HOST_CLASS);
+				  if (err) {
+					  DEBUG_PRINTLN("Error mounting USB device ");
+					  DEBUG_PRINTLN(err);
+					  response.code = F("500");
+					  response.desc = F("Error mounting USB device ");
+					  response.status = false;
+					  client.flush();
+					  client.stop();
+
+					  return response;
+				  }
+
+
 #endif
 					sdActive = true;
+#ifndef EXTERNAL_STORAGE == STORAGE_USB_HOST_MBED
 				 } // Close EXTERNAL_STORAGE_CLASS.exists
+#endif
 #endif
 
 			    DEBUG_PRINTLN(F("Open file: "));
+#if EXTERNAL_STORAGE == STORAGE_USB_HOST_MBED
+			    EMAIL_FILE_EX *myFile = fopen(attachments.fileDescriptor[i].url.c_str(), "r+");
+
+				  DEBUG_PRINTLN(F("OK"));
+				  if (attachments.fileDescriptor[i].encode64){
+					  DEBUG_PRINTLN(F("BASE 64"));
+					  encode(myFile, &client);
+				  }else{
+					  DEBUG_PRINTLN(F("NORMAL"));
+					  char buf[64];
+					  Serial.println("File content:");
+
+					  while (fgets(buf, 64, myFile) != NULL) {
+						  client.write((byte*)buf,64);
+					  }
+
+					  err = fclose(myFile);
+						client.println();
+
+					  if (err < 0) {
+						  response.code = F("404");
+						  response.desc = "Error opening attachments file "+attachments.fileDescriptor[i].url;
+						  response.status = false;
+						  client.flush();
+						  client.stop();
+
+						  return response;
+
+					  }
+				  }
+#else
 			EMAIL_FILE_EX myFile = EXTERNAL_STORAGE_CLASS.open(attachments.fileDescriptor[i].url.c_str());
 
 			  if(myFile) {
@@ -968,7 +1066,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 
 				  return response;
 			  } // Close myFile
-
+#endif
 			} // Close storageType==EMAIL_STORAGE_TYPE_SD
 #else
 	if (attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_SD){
@@ -990,7 +1088,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 		  if (sdActive){
 			  DEBUG_PRINTLN(F("SD end"));
 		#ifndef ARDUINO_ESP8266_RELEASE_2_4_2
-			#if EXTERNAL_STORAGE != STORAGE_SDFAT_RP2040_ESP8266
+			#if EXTERNAL_STORAGE != STORAGE_SDFAT_RP2040_ESP8266 && EXTERNAL_STORAGE != STORAGE_USB_HOST_MBED
 			  EXTERNAL_STORAGE_CLASS.end();
 			#endif
 		#endif

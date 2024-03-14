@@ -341,6 +341,21 @@
 		#define EMAIL_FILE_EX FsFile
 
 		#define DIFFERENT_FILE_MANAGE
+	#elif (EXTERNAL_STORAGE == STORAGE_USB_HOST_MBED)
+		#include <Arduino_USBHostMbed5.h>
+		#include <DigitalOut.h>
+		#include <FATFileSystem.h>
+
+		USBHostMSD msd;
+		mbed::FATFileSystem usb("usb");
+
+		#define EXTERNAL_HOST_CLASS msd
+		#define EXTERNAL_STORAGE_CLASS usb
+		#define EMAIL_FILE_EX FILE
+
+		#define EMAIL_FILE_READ_EX FILE_READ
+
+		#define DIFFERENT_FILE_MANAGE
 	#elif (EXTERNAL_STORAGE == STORAGE_SD)
 		#include <SD.h>
 
@@ -399,7 +414,8 @@ public:
 		EMAIL_STORAGE_TYPE_LITTLE_FS,
 		EMAIL_STORAGE_TYPE_FFAT,
 		EMAIL_STORAGE_TYPE_SPIFM,
-		EMAIL_STORAGE_TYPE_SD
+		EMAIL_STORAGE_TYPE_SD,
+		EMAIL_STORAGE_TYPE_USB
 	};
 
 #define MIME_TEXT_HTML F("text/html")
