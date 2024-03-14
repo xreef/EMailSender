@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266, stm32 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 3.0.13
+ * VERSION: 3.0.14
  *
  * https://www.mischianti.org/
  *
@@ -117,7 +117,7 @@
     #define DEFAULT_INTERNAL_ARDUINO_RP2040_STORAGE STORAGE_LITTLEFS
     #define DEFAULT_EXTERNAL_ARDUINO_RP2040_STORAGE STORAGE_NONE
 #endif
-// Arduino MBED microcontrollers configuration
+// Arduino MBED microcontrollers configuration LIKE Arduino GIGA
 #ifndef DEFAULT_EMAIL_NETWORK_TYPE_ARDUINO_MBED
 	#define DEFAULT_EMAIL_NETWORK_TYPE_MBED NETWORK_MBED_WIFI
 	#define DEFAULT_INTERNAL_ARDUINO_MBED_STORAGE STORAGE_NONE
