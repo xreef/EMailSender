@@ -26,6 +26,7 @@ Arduino (support W5100 like must be set, and ENC28J60 via UIPEthernet), esp8266 
 #### [Inviare email con allegati (libreria v2.x): esp32 e esp8266](https://www.mischianti.org/it/2020/06/16/inviare-email-con-allegati-libreria-v2-x-esp32-e-esp8266-part-2/)
 
 ## Change log
+ - 14/03/2024: v3.0.14 Support Arduino GIGA WiFi
  - 31/10/2023: v3.0.13 Fix wrong implementation of FORCE_DISABLE_SSL
  - 17/10/2023: v3.0.12 Fix warnigs of variable not used #43 thanks to @Patriboom @Andy2015
  - 16/02/2023: v3.0.11 Add support for Ethernet_Generic
