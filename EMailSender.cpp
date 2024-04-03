@@ -505,6 +505,12 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 			    client.setInsecure();
 			#endif
 		#endif
+        if (!this->isSecure && this->trySecure)
+		// When we are not connecting through SSL directly; we try to
+		// upgrade to SSL or TLS via StartTLS whenever possible by
+		// default.
+  		DEBUG_PRINTLN(F("Setting PLAINtext start"));
+		client.setPlainStart();
 	#endif
 #endif
   EMailSender::Response response;
@@ -593,7 +599,76 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 	  }
   }
 
-  if (useAuth){
+    bool hasStartTLS = false;
+
+    for(int i = 0; i < 1024 /* for servers sending silly numbers*/; i++) {
+        response = awaitSMTPResponse(client, "250", "EHLO error", 2500);
+        if (!response.status) {
+            return response;
+        }
+        if (i) {
+            String capability = _serverResponce.substring(4); // Strip "250<space>
+            capability.toUpperCase();
+
+            if (capability.startsWith("AUTH")) {
+                useAuth = true;
+
+                if (capability.indexOf("CRAM-MD5") != -1)
+                    this->isCramMD5Login = true;
+
+                if (capability.indexOf("SASL") != -1)
+                    this->isSASLLogin = true;
+
+                if (capability.indexOf("PLAIN") != -1)
+                    this->isPlainLogin = true;
+
+                // if (capability.indexOf("DIGEST-MD5") != -1)
+                //   --> not supporting - retired by RFC 6331
+
+                // if (capability.indexOf("LOGIN") != -1)
+                // --> the fall through default; we always try this
+            };
+
+            if (capability.startsWith("STARTTLS"))
+                hasStartTLS = true;
+        }
+
+        // In SMTP - the final cmdn response line has a space after the status;
+        // continued lines have a '-' in this position.
+        //
+        if (_serverResponce.charAt(3) == ' ')
+            break;
+    }
+    if (!hasStartTLS || this->isSecure)
+        break;
+
+    if (!this->trySecure) {
+        log_i("Configured to not upgrade to TLS/SSL.");
+        break;
+    };
+
+    log_d("Start upgrade to TLS");
+    client.println("STARTTLS");
+
+    // eat the "220 2.0.0 Ready to start TLS" ready reply.
+    response = awaitSMTPResponse(client, "220", "STARTTLS error", 2500);
+    if (!response.status) {
+        response.desc = F("Timeout during confirmation STARTTLS upgrade");
+        return response;
+    }
+    DEBUG_PRINTLN("Switched to TLS/SSL");
+    if (!client.startTLS()) {
+        response.desc = F("Error during in-line upgrade to TLS/SSL");
+        client.flush();
+        client.stop();
+        return response;
+    }
+    DEBUG_PRINTLN("Switched to TLS/SSL - conection now encrypted.");
+    this->isSecure = true;
+    continue;
+}
+
+if (useAuth){
 	  if (this->isSASLLogin == true){
 
 		  int size = 1 + strlen(this->email_login)+ strlen(this->email_password)+2;

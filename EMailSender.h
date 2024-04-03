@@ -503,12 +503,15 @@ private:
 	const char* publicIPDescriptor = "mischianti";
 
 	bool isSecure = false;
+	bool trySecure = true;
 
 	bool useEHLO = false;
 	bool isSASLLogin = false;
 
 	bool useAuth = true;
         bool isCramMD5Login = false;
+        bool isPlainLogin = false;
+
 
     String _serverResponce;
 
