@@ -803,6 +803,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
   client.println(F("MIME-Version: 1.0"));
   client.println(F("Content-Type: Multipart/mixed; boundary=frontier"));
 
+  client.println();
   client.println(F("--frontier"));
 
     client.print(F("Content-Type: "));
