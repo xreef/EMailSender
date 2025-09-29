@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266, stm32 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 3.0.14
+ * VERSION: 3.0.15
  *
  * https://www.mischianti.org/
  *
@@ -34,8 +34,15 @@
 
 #include "EMailSender.h"
 #include <stdio.h>
+
+#define MANAGE_DATE_HEADER
+
 #if defined(ESP32)
 #include <mbedtls/base64.h>
+#endif
+
+#if (defined(ESP32) || defined(ESP8266)) && defined(MANAGE_DATE_HEADER)
+#include <time.h>
 #endif
 
 //#include <SPIFFS.h>
@@ -273,12 +280,12 @@ void encodeblock(unsigned char in[3],unsigned char out[4],int len) {
 						len=0;
 							for (i=0;i<3;i++){
 								in[i]=(unsigned char) file->read();
-									if (file->available()!=0) len++;
-											else in[i]=0;
+								if (file->available()!=0) len++;
+										else in[i]=0;
 							}
 							if (len){
 								encodeblock(in,out,len);
-						//         for(i=0;i<4;i++) client->write(out[i]);
+				//         for(i=0;i<4;i++) client->write(out[i]);
 								client->write(out, 4);
 								blocksout++; }
 							if (blocksout>=19||file->available()==0){
@@ -299,12 +306,12 @@ void encodeblock(unsigned char in[3],unsigned char out[4],int len) {
 						len=0;
 							for (i=0;i<3;i++){
 								in[i]=(unsigned char) file->read();
-									if (file->available()!=0) len++;
-											else in[i]=0;
+								if (file->available()!=0) len++;
+										else in[i]=0;
 							}
 							if (len){
 								encodeblock(in,out,len);
-						//         for(i=0;i<4;i++) client->write(out[i]);
+				//         for(i=0;i<4;i++) client->write(out[i]);
 								client->write(out, 4);
 								blocksout++; }
 							if (blocksout>=19||file->available()==0){
@@ -509,88 +516,93 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 #endif
   EMailSender::Response response;
 
+  // Auto-manage port 587 (submission): prefer EHLO and STARTTLS upgrade when supported
+  if (this->smtp_port == 587) {
+      this->useEHLO = true;
+      // Do NOT force implicit TLS on 587; use STARTTLS after EHLO instead when supported
+  }
+
   DEBUG_PRINTLN(this->smtp_server);
   DEBUG_PRINTLN(this->smtp_port);
 
-  if(!client.connect(this->smtp_server, this->smtp_port)) {
-	  response.desc = F("Could not connect to mail server");
-	  response.code = F("2");
-	  response.status = false;
+  // STARTTLS upgrade flow for port 587 when supported
+  if (this->smtp_port == 587) {
+    // Request STARTTLS on servers advertising it
+    DEBUG_PRINTLN(F("Request STARTTLS"));
+    client.println(F("STARTTLS"));
+    response = awaitSMTPResponse(client, "220", "STARTTLS not supported or refused", 10000);
+    if (!response.status) {
+        client.flush();
+        client.stop();
+        return response;
+    }
 
-	  client.flush();
-	  client.stop();
-
-	  return response;
-  }
-
-  response = awaitSMTPResponse(client, "220", "Connection Error");
-  if (!response.status) {
-	  client.flush();
-	  client.stop();
-	  return response;
-  }
-
-  if (this->additionalResponseLineOnConnection == 0) {
-  	  if (DEFAULT_CONNECTION_RESPONSE_COUNT == 'a'){
-  	    this->additionalResponseLineOnConnection = 255;
-  	  } else {
-  	    this->additionalResponseLineOnConnection = DEFAULT_CONNECTION_RESPONSE_COUNT;
-  	  }
-  }
-
-  if (this->additionalResponseLineOnConnection > 0){
-	  for (int i = 0; i<=this->additionalResponseLineOnConnection; i++) {
-		response = awaitSMTPResponse(client, "220", "Connection response error ", 2500);
-		//if additionalResponseLineOnConnection is set to 255: wait out all code 250 responses, then continue
-        if (this->additionalResponseLineOnConnection == 255) break;
-        else {
+    // Upgrade to TLS dove possibile
+    #if defined(ESP32) || defined(ESP8266)
+      DEBUG_PRINTLN(F("Upgrading connection to TLS (STARTTLS)"));
+      #if defined(ESP32)
+        client.setInsecure();
+      #endif
+      if (!client.startTLS()) {
+          EMailSender::Response r;
+          r.code = F("3");
+          r.desc = F("STARTTLS handshake failed");
+          r.status = false;
+          client.flush();
+          client.stop();
+          return r;
+      }
+      // Re-EHLO dopo STARTTLS
+      DEBUG_PRINTLN(F("Re-EHLO after STARTTLS"));
+      client.println(helo);
+      response = awaitSMTPResponse(client, "250", "Identification error after STARTTLS");
+      if (!response.status) {
+          client.flush();
+          client.stop();
+          return response;
+      }
+      if (this->additionalResponseLineOnHELO > 0){
+          for (int i = 0; i<=this->additionalResponseLineOnHELO; i++) {
+            response = awaitSMTPResponse(client, "250", "EHLO error", 2500);
             if (!response.status && response.code == F("1")) {
-                response.desc = F("Connection error! Reduce the HELO response line!");
-                client.flush();
-                client.stop();
-                return response;
+                if (this->additionalResponseLineOnHELO == 255) break;
+                else {
+                    response.desc = F("Timeout! Reduce additional HELO response line count or set it to 255!");
+                    client.flush();
+                    client.stop();
+                    return response;
+                }
             }
-		}
-	  }
-  }
-
-  String commandHELO = "HELO";
-  if (this->useEHLO == true) {
-	  commandHELO = "EHLO";
-  }
-  String helo = commandHELO + " "+String(publicIPDescriptor)+" ";
-  DEBUG_PRINTLN(helo);
-  client.println(helo);
-
-  response = awaitSMTPResponse(client, "250", "Identification error");
-  if (!response.status) {
-	  client.flush();
-	  client.stop();
-	  return response;
-  }
-
-  if (this->useEHLO == true && this->additionalResponseLineOnHELO == 0) {
-	  if (DEFAULT_EHLO_RESPONSE_COUNT == 'a'){
-	    this->additionalResponseLineOnHELO = 255;
-	  } else {
-	    this->additionalResponseLineOnHELO = DEFAULT_EHLO_RESPONSE_COUNT;
-	  }
-  }
-
-  if (this->additionalResponseLineOnHELO > 0){
-	  for (int i = 0; i<=this->additionalResponseLineOnHELO; i++) {
-		response = awaitSMTPResponse(client, "250", "EHLO error", 2500);
-		if (!response.status && response.code == F("1")) {
-			//if additionalResponseLineOnHELO is set to 255: wait out all code 250 responses, then continue
-			if (this->additionalResponseLineOnHELO == 255) break;
-			else {
-				response.desc = F("Timeout! Reduce additional HELO response line count or set it to 255!");
-				client.flush();
-				client.stop();
-				return response;
-			}
-		}
-	  }
+          }
+      }
+    #else
+      // Tenta comunque la connessione, logga che la piattaforma non ha API startTLS
+      DEBUG_PRINTLN(F("STARTTLS richiesto su piattaforma senza API dedicata. Si tenta comunque la connessione."));
+      // Non si può fare handshake TLS, si prosegue senza upgrade (il server potrebbe rifiutare)
+      // Re-EHLO dopo STARTTLS
+      DEBUG_PRINTLN(F("Re-EHLO after STARTTLS (no TLS upgrade)"));
+      client.println(helo);
+      response = awaitSMTPResponse(client, "250", "Identification error after STARTTLS");
+      if (!response.status) {
+          client.flush();
+          client.stop();
+          return response;
+      }
+      if (this->additionalResponseLineOnHELO > 0){
+          for (int i = 0; i<=this->additionalResponseLineOnHELO; i++) {
+            response = awaitSMTPResponse(client, "250", "EHLO error", 2500);
+            if (!response.status && response.code == F("1")) {
+                if (this->additionalResponseLineOnHELO == 255) break;
+                else {
+                    response.desc = F("Timeout! Reduce additional HELO response line count or set it to 255!");
+                    client.flush();
+                    client.stop();
+                    return response;
+                }
+            }
+          }
+      }
+    #endif
   }
 
   if (useAuth){
@@ -797,6 +809,19 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 
   client.print(F("Subject: "));
   client.println(email.subject);
+
+#ifdef MANAGE_DATE_HEADER
+	#if defined(ESP32) || defined(ESP8266)
+		configTime(0, 0, "pool.ntp.org");
+		struct tm timeinfo;
+		if (getLocalTime(&timeinfo, 5000)) {  // wait up to 5s
+			char buf[40];
+			strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S +0000", &timeinfo);
+			client.print(F("Date: "));
+			client.println(buf);
+		}
+	#endif
+#endif
 
 //  client.println(F("Mime-Version: 1.0"));
 
@@ -1109,4 +1134,3 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 
   return response;
 }
-

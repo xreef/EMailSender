@@ -26,6 +26,8 @@ Arduino (support W5100 like must be set, and ENC28J60 via UIPEthernet), esp8266 
 #### [Inviare email con allegati (libreria v2.x): esp32 e esp8266](https://www.mischianti.org/it/2020/06/16/inviare-email-con-allegati-libreria-v2-x-esp32-e-esp8266-part-2/)
 
 ## Change log
+ - 24/09/2025: v3.0.16 STARTTLS (port 587) support added for ESP32/ESP8266; SAMD and RP2040 require implicit TLS on port 465
+ - 20/09/2025: v3.0.15 Add Date header
  - 14/03/2024: v3.0.14 Support Arduino GIGA WiFi
  - 31/10/2023: v3.0.13 Fix wrong implementation of FORCE_DISABLE_SSL
  - 17/10/2023: v3.0.12 Fix warnigs of variable not used #43 thanks to @Patriboom @Andy2015
@@ -83,6 +85,23 @@ Storage supported
 	- SPIFFS
 	- LITTLEFS
 	- Ffat
+
+## STARTTLS and SMTP ports by platform
+- ESP32/ESP8266: Port 587 with STARTTLS is supported. Port 465 (implicit TLS) also works.
+- Arduino SAMD (WiFiNINA) and Raspberry Pi Pico/RP2040: The WiFiNINA/WiFiSSLClient stack does not support STARTTLS upgrade on an existing TCP connection. Use port 465 (implicit TLS). If you try port 587 you will get a clear error from the library.
+
+Example (implicit TLS on port 465):
+```cpp
+// Gmail example – works on ESP32/ESP8266/SAMD/RP2040
+EMailSender emailSend(
+  "smtp.account@gmail.com",     // login (and default from)
+  "app-password",               // app-specific password
+  "smtp.account@gmail.com",     // from address
+  "Your Name",                  // optional display name
+  "smtp.gmail.com",             // SMTP server
+  465                            // SMTP port: implicit TLS
+);
+```
 
 Constructor:
 Default value is quite simple and use GMail as smtp server. 

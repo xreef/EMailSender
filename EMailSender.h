@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266, stm32 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 3.0.14
+ * VERSION: 3.0.15
  *
  * https://www.mischianti.org/
  *
@@ -34,6 +34,8 @@
 
 #ifndef EMailSender_h
 #define EMailSender_h
+
+#define MANAGE_DATE_HEADER
 
 #include "EMailSenderKey.h"
 
@@ -87,25 +89,25 @@
 
 //#if defined(ESP8266) || defined(ESP31B)
 //	#ifndef STORAGE_EXTERNAL_FORCE_DISABLE
-//		#define STORAGE_EXTERNAL_ENABLED
+//	#define STORAGE_EXTERNAL_ENABLED
 //	#endif
 //	#ifndef STORAGE_INTERNAL_FORCE_DISABLE
-//		#define STORAGE_INTERNAL_ENABLED
+//	#define STORAGE_INTERNAL_ENABLED
 //	#endif
 //#elif defined(ESP32)
 //	#ifndef STORAGE_EXTERNAL_FORCE_DISABLE
-//		#define STORAGE_EXTERNAL_ENABLED
+//	#define STORAGE_EXTERNAL_ENABLED
 //	#endif
 //	#ifndef STORAGE_INTERNAL_FORCE_DISABLE
-//		#define STORAGE_INTERNAL_ENABLED
+//	#define STORAGE_INTERNAL_ENABLED
 //	#endif
 //#elif defined(ARDUINO_ARCH_STM32)
 //	#ifndef STORAGE_EXTERNAL_FORCE_DISABLE
-//		#define STORAGE_EXTERNAL_ENABLED
+//	#define STORAGE_EXTERNAL_ENABLED
 //	#endif
 //#else
 //	#ifndef STORAGE_EXTERNAL_FORCE_DISABLE
-//		#define STORAGE_EXTERNAL_ENABLED
+//	#define STORAGE_EXTERNAL_ENABLED
 //	#endif
 //#endif
 
@@ -265,56 +267,56 @@
 #endif
 
 #ifdef STORAGE_INTERNAL_ENABLED
-//			#define FS_NO_GLOBALS
-		#if (INTERNAL_STORAGE == STORAGE_SPIFFS)
-			#if defined(ESP32)
-				#include <SPIFFS.h>
-				#define INTERNAL_STORAGE_CLASS SPIFFS
+//	#define FS_NO_GLOBALS
+	#if (INTERNAL_STORAGE == STORAGE_SPIFFS)
+		#if defined(ESP32)
+			#include <SPIFFS.h>
+			#define INTERNAL_STORAGE_CLASS SPIFFS
 
-				#define EMAIL_FILE_READ "r"
-			#elif defined(ESP8266)
-				#ifdef ARDUINO_ESP8266_RELEASE_2_4_2
-					#define DIFFERENT_FILE_MANAGE
-				#endif
-				#include "FS.h"
-
-				#define INTERNAL_STORAGE_CLASS SPIFFS
-				#define EMAIL_FILE_READ "r"
+			#define EMAIL_FILE_READ "r"
+		#elif defined(ESP8266)
+			#ifdef ARDUINO_ESP8266_RELEASE_2_4_2
+				#define DIFFERENT_FILE_MANAGE
 			#endif
-			#define EMAIL_FILE fs::File
-		#elif (INTERNAL_STORAGE == STORAGE_LITTLEFS)
-			#if defined(ESP32)
-				#if ESP_ARDUINO_VERSION_MAJOR >= 2
-						#include "FS.h"
-						#include "LittleFS.h"
-						#define INTERNAL_STORAGE_CLASS LittleFS
-				#else
-						#include "LITTLEFS.h"
-						#define INTERNAL_STORAGE_CLASS LITTLEFS
-				#endif
-			#else
+			#include "FS.h"
+
+			#define INTERNAL_STORAGE_CLASS SPIFFS
+			#define EMAIL_FILE_READ "r"
+		#endif
+		#define EMAIL_FILE fs::File
+	#elif (INTERNAL_STORAGE == STORAGE_LITTLEFS)
+		#if defined(ESP32)
+			#if ESP_ARDUINO_VERSION_MAJOR >= 2
+				#include "FS.h"
 				#include "LittleFS.h"
 				#define INTERNAL_STORAGE_CLASS LittleFS
+			#else
+				#include "LITTLEFS.h"
+				#define INTERNAL_STORAGE_CLASS LITTLEFS
 			#endif
-			#define EMAIL_FILE_READ "r"
-			#define EMAIL_FILE fs::File
-		#elif (INTERNAL_STORAGE == STORAGE_FFAT)
-			#include "FFat.h"
-			#define INTERNAL_STORAGE_CLASS FFat
-			#define EMAIL_FILE_READ 'r'
-			#define EMAIL_FILE fs::File
-		#elif (INTERNAL_STORAGE == STORAGE_SPIFM)
-			#include <SPI.h>
-
-			#include "SdFat.h"
-			#include "Adafruit_SPIFlash.h"
-
-			#define INTERNAL_STORAGE_CLASS fatfs
-			extern FatFileSystem INTERNAL_STORAGE_CLASS;
-
-			#define EMAIL_FILE_READ O_READ
-			#define EMAIL_FILE File
+		#else
+			#include "LittleFS.h"
+			#define INTERNAL_STORAGE_CLASS LittleFS
 		#endif
+		#define EMAIL_FILE_READ "r"
+		#define EMAIL_FILE fs::File
+	#elif (INTERNAL_STORAGE == STORAGE_FFAT)
+		#include "FFat.h"
+		#define INTERNAL_STORAGE_CLASS FFat
+		#define EMAIL_FILE_READ 'r'
+		#define EMAIL_FILE fs::File
+	#elif (INTERNAL_STORAGE == STORAGE_SPIFM)
+		#include <SPI.h>
+
+		#include "SdFat.h"
+		#include "Adafruit_SPIFlash.h"
+
+		#define INTERNAL_STORAGE_CLASS fatfs
+		extern FatFileSystem INTERNAL_STORAGE_CLASS;
+
+		#define EMAIL_FILE_READ O_READ
+		#define EMAIL_FILE File
+	#endif
 #endif
 
 #ifdef STORAGE_EXTERNAL_ENABLED

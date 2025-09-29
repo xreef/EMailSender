@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266, stm32 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 3.0.14
+ * VERSION: 3.0.15
  *
  * https://www.mischianti.org/
  *
@@ -41,7 +41,7 @@
 #define ENABLE_ATTACHMENTS
 
 // Uncomment to enable printing out nice debug messages.
-//#define EMAIL_SENDER_DEBUG
+#define EMAIL_SENDER_DEBUG
 
 // Define where debug output will be printed.
 #define DEBUG_PRINTER Serial
