@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266, stm32 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 3.0.15
+ * VERSION: 3.0.17
  *
  * https://www.mischianti.org/
  *
@@ -35,9 +35,10 @@
 #ifndef EMailSender_h
 #define EMailSender_h
 
-#define MANAGE_DATE_HEADER
-
 #include "EMailSenderKey.h"
+#if !defined(EMAIL_DISABLE_INTERNAL_SSLCLIENT)
+#include "sslclient/SSLClient.h"
+#endif
 
 #if ARDUINO >= 100
 #include "Arduino.h"
@@ -264,6 +265,13 @@
 
 #else
 #error "no network type selected!"
+#endif
+
+// Base TCP client da usare con sslclient::SSLClient (non TLS)
+#if defined(ESP32) || defined(ESP8266)
+	typedef WiFiClient EMAIL_TCP_BASE_CLIENT;
+#else
+	typedef EMAIL_NETWORK_CLASS EMAIL_TCP_BASE_CLIENT;
 #endif
 
 #ifdef STORAGE_INTERNAL_ENABLED
@@ -494,6 +502,19 @@ public:
 		this->additionalResponseLineOnHELO = numLines;
 	}
 
+public:
+    enum ClientType {
+        CLIENT_STANDARD,
+        CLIENT_SSLCLIENT
+    };
+    void setClientType(ClientType type);
+
+private:
+    ClientType clientType = CLIENT_STANDARD;
+#if !defined(EMAIL_DISABLE_INTERNAL_SSLCLIENT)
+    sslclient::SSLClient* sslClient = nullptr;
+#endif
+
 private:
 	uint16_t smtp_port = 465;
 	char* smtp_server = strdup("smtp.gmail.com");
@@ -517,11 +538,10 @@ private:
     uint8_t additionalResponseLineOnConnection = 0;
     uint8_t additionalResponseLineOnHELO = 0;
 
-#ifdef SSLCLIENT_WRAPPER
-    Response awaitSMTPResponse(SSLClient &client, const char* resp = "", const char* respDesc = "", uint16_t timeOut = 10000);
-#else
-    Response awaitSMTPResponse(EMAIL_NETWORK_CLASS &client, const char* resp = "", const char* respDesc = "", uint16_t timeOut = 10000);
-#endif
+    // Unificato: sempre su Client& per compatibilità con qualunque implementazione di Client
+    EMailSender::Response awaitSMTPResponse(Client &client, const char* resp = "", const char* respDesc = "", uint16_t timeOut = 10000);
+    // Nuovo: drena tutte le linee multipart (es. 250- ... 250 ...)
+    EMailSender::Response awaitSMTPResponseDrain(Client &client, const char* resp = "", const char* respDesc = "", uint16_t timeOut = 5000, uint8_t maxLines = 25);
 };
 
 #endif

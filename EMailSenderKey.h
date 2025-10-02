@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266, stm32 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 3.0.15
+ * VERSION: 3.0.17
  *
  * https://www.mischianti.org/
  *
@@ -43,6 +43,9 @@
 // Uncomment to enable printing out nice debug messages.
 #define EMAIL_SENDER_DEBUG
 
+// Ensure Date header is generated once by the library
+#define MANAGE_DATE_HEADER
+
 // Define where debug output will be printed.
 #define DEBUG_PRINTER Serial
 
@@ -80,6 +83,11 @@
 
 // If you want add a wrapper to emulate SSL over Client like EthernetClient
 // #define SSLCLIENT_WRAPPER
+
+// If you want to completely disable the internal SSLClient wrapper (STARTTLS on 587)
+// and rely only on the native network client (e.g. WiFiClientSecure for 465),
+// uncomment the following define to reduce flash size and requirements on old devices.
+// #define EMAIL_DISABLE_INTERNAL_SSLCLIENT
 
 // esp8266 microcontrollers configuration
 #ifndef DEFAULT_EMAIL_NETWORK_TYPE_ESP8266
