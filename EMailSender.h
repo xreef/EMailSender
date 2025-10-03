@@ -36,8 +36,17 @@
 #define EMailSender_h
 
 #include "EMailSenderKey.h"
-#if !defined(EMAIL_DISABLE_INTERNAL_SSLCLIENT)
+#if defined(EMAIL_ENABLE_INTERNAL_SSLCLIENT)
 #include "sslclient/SSLClient.h"
+#endif
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT)
+// Forward declaration to break circular dependency
+class OSUSSLClientAdapter;
+#endif
+
+#ifndef ANALOG_PIN
+#define ANALOG_PIN A0
 #endif
 
 #if ARDUINO >= 100
@@ -511,17 +520,17 @@ public:
 
 private:
     ClientType clientType = CLIENT_STANDARD;
-#if !defined(EMAIL_DISABLE_INTERNAL_SSLCLIENT)
+#if defined(EMAIL_ENABLE_INTERNAL_SSLCLIENT)
     sslclient::SSLClient* sslClient = nullptr;
 #endif
 
 private:
-	uint16_t smtp_port = 465;
-	char* smtp_server = strdup("smtp.gmail.com");
-	char* email_login = 0;
-	char* email_from  = 0;
-	char* name_from  = 0;
-	char* email_password = 0;
+    uint16_t smtp_port = 465;
+    char* smtp_server = strdup("smtp.gmail.com");
+    char* email_login = 0;
+    char* email_from  = 0;
+    char* name_from  = 0;
+    char* email_password = 0;
 
 	const char* publicIPDescriptor = "mischianti";
 
@@ -538,9 +547,9 @@ private:
     uint8_t additionalResponseLineOnConnection = 0;
     uint8_t additionalResponseLineOnHELO = 0;
 
-    // Unificato: sempre su Client& per compatibilità con qualunque implementazione di Client
+    // Unified: always on Client& for compatibility with any Client implementation
     EMailSender::Response awaitSMTPResponse(Client &client, const char* resp = "", const char* respDesc = "", uint16_t timeOut = 10000);
-    // Nuovo: drena tutte le linee multipart (es. 250- ... 250 ...)
+    // New: drains all multipart lines (e.g. 250- ... 250 ...)
     EMailSender::Response awaitSMTPResponseDrain(Client &client, const char* resp = "", const char* respDesc = "", uint16_t timeOut = 5000, uint8_t maxLines = 25);
 };
 

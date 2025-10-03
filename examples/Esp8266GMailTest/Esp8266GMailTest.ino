@@ -70,8 +70,8 @@ void setup()
         Awaits();          // constantly trying to connect
 
     EMailSender::EMailMessage message;
-    message.subject = "Soggetto";
-    message.message = "Ciao come stai<br>io bene.<br>www.mischianti.org";
+    message.subject = "Subject";
+    message.message = "Hi, how are you?<br>I'm fine.<br>www.mischianti.org";
 
     EMailSender::Response resp = emailSend.send("account_to_send@gmail.com", message);
 

@@ -11,6 +11,12 @@
  * #define DEFAULT_EMAIL_NETWORK_TYPE_ARDUINO 	NETWORK_W5100
  * for standard Ethernet
  *
+ * Prerequisiti (TLS implicito 465 su UIPEthernet):
+ * - Abilita in EMailSenderKey.h:
+ *     #define EMAIL_ENABLE_OPENSLAB_SSLCLIENT
+ *   (alias legacy supportato: #define EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
+ * - STARTTLS (587) non è supportato da questo backend.
+ *
  * The base64 encoding of the image is slow, so be patient
  *
  *
@@ -78,8 +84,8 @@ void setup()
 
 
     EMailSender::EMailMessage message;
-    message.subject = "Soggetto";
-    message.message = "Ciao come stai<br>io bene.<br>www.mischianti.org";
+    message.subject = "Subject";
+    message.message = "Hi, how are you?<br>I'm fine.<br>www.mischianti.org";
     message.mime = MIME_TEXT_PLAIN;
 
 // 		Two file
@@ -159,5 +165,3 @@ void printDirectory(File dir, int numTabs) {
     entry.close();
   }
 }
-
-

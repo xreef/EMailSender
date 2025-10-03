@@ -1,5 +1,10 @@
 #include "EMailSender.h"
-#if !defined(EMAIL_DISABLE_INTERNAL_SSLCLIENT)
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT)
+#include "sslclientosu/OSUSSLClientAdapter.h"
+#endif
+
+#if defined(EMAIL_ENABLE_INTERNAL_SSLCLIENT)
 #include "sslclient/SSLClient.h"
 #endif
 #include <stdio.h>
@@ -174,7 +179,7 @@ void EMailSender::setIsSecure(bool isSecure) {
 
 void EMailSender::setClientType(ClientType type) {
     clientType = type;
-#if !defined(EMAIL_DISABLE_INTERNAL_SSLCLIENT)
+#if defined(EMAIL_ENABLE_INTERNAL_SSLCLIENT)
     if (clientType == CLIENT_SSLCLIENT && sslClient == nullptr) {
         static EMAIL_TCP_BASE_CLIENT base_client;
         static sslclient::SSLClient static_sslclient(base_client);
@@ -182,12 +187,12 @@ void EMailSender::setClientType(ClientType type) {
         sslClient = &static_sslclient;
     }
 #else
-    // Wrapper SSLClient disabilitato: forza standard
+    // Wrapper SSLClient disabled: force standard
     clientType = CLIENT_STANDARD;
 #endif
 }
 
-// Helper: legge una riga terminata da \n con timeout, indipendente da available()
+// Helper: read one line (ending with \n) with timeout, independent from available()
 static bool readLineWithTimeout(Client &client, String &line, uint16_t timeOut) {
     line = "";
     uint32_t ts = millis();
@@ -201,11 +206,11 @@ static bool readLineWithTimeout(Client &client, String &line, uint16_t timeOut) 
             delay(5);
         }
     }
-    // Timeout: ritorna true se qualcosa è stato letto (linea parziale), altrimenti false
+    // Timeout: return true if something was read (partial line), otherwise false
     return line.length() > 0;
 }
 
-// Unificato: sempre Client&
+// Unified: always operates on a generic Client&
 EMailSender::Response EMailSender::awaitSMTPResponse(Client &client,
 		const char* resp, const char* respDesc, uint16_t timeOut) {
 	EMailSender::Response response;
@@ -229,7 +234,7 @@ EMailSender::Response EMailSender::awaitSMTPResponse(Client &client,
 	return response;
 }
 
-// Drena risposte multilinea (es. EHLO: 250- ... 250 ...)
+// Drain multiline responses (e.g. EHLO: 250- ... 250 ...)
 EMailSender::Response EMailSender::awaitSMTPResponseDrain(Client &client,
         const char* resp, const char* respDesc, uint16_t timeOut, uint8_t maxLines) {
     EMailSender::Response response = awaitSMTPResponse(client, resp, respDesc, timeOut);
@@ -240,12 +245,12 @@ EMailSender::Response EMailSender::awaitSMTPResponseDrain(Client &client,
     for (uint8_t i = 0; i < maxLines; i++) {
         String line;
         bool ok = readLineWithTimeout(client, line, timeOut);
-        if (!ok) break; // niente altra linea
+        if (!ok) break; // no more lines
         _serverResponce = line;
         DEBUG_PRINTLN(line);
-        if (line.startsWith("250-")) continue; // ancora linee 250-
-        if (line.startsWith("250 ")) break;    // ultima linea 250 <spazio>
-        // Altra risposta: interrompi, lasciala in _serverResponce
+        if (line.startsWith("250-")) continue; // still 250- lines
+        if (line.startsWith("250 ")) break;    // last 250 <space> line
+        // Different response: stop here and keep it in _serverResponce
         break;
     }
     response.status = true;
@@ -391,7 +396,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 	return send(to, sizeOfTo, sizeOfCc, 0, email, attachments);
 }
 
-#ifdef SSLCLIENT_WRAPPER
+#ifdef EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB
 #ifdef PUT_OUTSIDE_SCOPE_CLIENT_DECLARATION
 	// Initialize the SSL client library
 	// We input an EthernetClient, our trust anchors, and the analog pin
@@ -410,127 +415,57 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 {
     EMailSender::Response response;
 
+    // Debug: print server and port
     DEBUG_PRINTLN(this->smtp_server);
     DEBUG_PRINTLN(this->smtp_port);
 
-    bool useStartTLS = (this->smtp_port == 587);
-
-    // Seleziona il client attivo
+    // Select active client to use for SMTP dialogue
     Client* activeClient = nullptr;
 
-    // Istanza locale per client standard
+    // Local instance for standard clients (WiFiClient/WiFiClientSecure/EthernetClient)
     EMAIL_NETWORK_CLASS localClient;
 
-#if !defined(EMAIL_DISABLE_INTERNAL_SSLCLIENT)
-    if (clientType == CLIENT_SSLCLIENT) {
-        if (sslClient == nullptr) {
-            // Crea wrapper su un base client statico non TLS
-            static EMAIL_TCP_BASE_CLIENT base_client;
-            static sslclient::SSLClient static_sslclient(base_client);
-            static_sslclient.setInsecure();
-            sslClient = &static_sslclient;
-        }
-        bool connected = sslClient->connect(this->smtp_server, this->smtp_port);
-#if defined(ESP32) || defined(ESP8266)
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT)
+    // Optional OPEnSLab SSLClient (BearSSL) backend for implicit TLS (465) over Ethernet/UIP/etc.
+    // Not for STARTTLS (587)
+    bool useStartTLS = (this->smtp_port == 587);
+    if (!useStartTLS) {
+        static EMAIL_NETWORK_CLASS base_client_openslab;
+        static sslclientosu::OsuSSLClient openslab_sslclient(base_client_openslab, TAs, (size_t)TAs_NUM, ANALOG_PIN);
+        bool connected = openslab_sslclient.connect(this->smtp_server, this->smtp_port);
         if (!connected) {
-            IPAddress ip;
-            if (WiFi.hostByName(this->smtp_server, ip)) {
-                DEBUG_PRINT(F("Resolved IP: "));
-                DEBUG_PRINTLN(ip);
-                connected = sslClient->connect(ip, this->smtp_port);
-            }
-        }
-#endif
-        if (!connected) {
-            response.desc = F("Could not connect to mail server (SSLClient)");
+            response.desc = F("Could not connect to mail server (OPEnSLab SSLClient)");
             response.code = F("2");
             response.status = false;
-            sslClient->flush();
-            sslClient->stop();
+            openslab_sslclient.stop();
             return response;
         }
-
-        if (useStartTLS) {
-            // Plain banner, poi STARTTLS
-            response = awaitSMTPResponse(*sslClient, "220", "Connection Error");
-            if (!response.status) {
-                sslClient->flush();
-                sslClient->stop();
-                return response;
-            }
-        } else {
-            // TLS implicito (465): handshake subito, poi banner
-            sslClient->startTLS(this->smtp_server, this->smtp_port);
-            if (!sslClient->connected()) {
-                response.desc = F("TLS handshake failed (implicit TLS)");
-                response.code = F("2");
-                response.status = false;
-                return response;
-            }
-            response = awaitSMTPResponse(*sslClient, "220", "Connection Error");
-            if (!response.status) {
-                sslClient->flush();
-                sslClient->stop();
-                return response;
-            }
+        response = awaitSMTPResponse(openslab_sslclient, "220", "Connection Error");
+        if (!response.status) {
+            openslab_sslclient.stop();
+            return response;
         }
-
-        // HELO/EHLO e STARTTLS se necessario
-        String helo;
-        bool drainedEHLO = false;
-        if (useStartTLS) {
-            // STARTTLS richiede EHLO
-            helo = String("EHLO ") + String(publicIPDescriptor) + " ";
-            DEBUG_PRINTLN(helo);
-            sslClient->println(helo);
-            response = awaitSMTPResponseDrain(*sslClient, "250", "Identification error");
-            drainedEHLO = true;
-            if (!response.status) {
-                sslClient->flush();
-                sslClient->stop();
-                return response;
-            }
-            sslClient->println("STARTTLS");
-            response = awaitSMTPResponse(*sslClient, "220", "STARTTLS not supported or failed");
-            if (!response.status) {
-                sslClient->flush();
-                sslClient->stop();
-                return response;
-            }
-            sslClient->startTLS(this->smtp_server, this->smtp_port);
-            // Ripeti EHLO dopo l'upgrade
-            DEBUG_PRINTLN(helo);
-            sslClient->println(helo);
-            response = awaitSMTPResponseDrain(*sslClient, "250", "Identification error after STARTTLS");
-            if (!response.status) {
-                sslClient->flush();
-                sslClient->stop();
-                return response;
-            }
+        String commandHELO = this->useEHLO ? "EHLO" : "HELO";
+        String helo = commandHELO + " "+String(publicIPDescriptor)+" ";
+        DEBUG_PRINTLN(helo);
+        openslab_sslclient.println(helo);
+        if (this->useEHLO) {
+            response = awaitSMTPResponseDrain(openslab_sslclient, "250", "Identification error");
         } else {
-            String commandHELO = this->useEHLO ? "EHLO" : "HELO";
-            helo = commandHELO + String(" ") + String(publicIPDescriptor) + " ";
-            DEBUG_PRINTLN(helo);
-            sslClient->println(helo);
-            if (this->useEHLO) {
-                response = awaitSMTPResponseDrain(*sslClient, "250", "Identification error");
-                drainedEHLO = true;
-            } else {
-                response = awaitSMTPResponse(*sslClient, "250", "Identification error");
-            }
-            if (!response.status) {
-                sslClient->flush();
-                sslClient->stop();
-                return response;
-            }
+            response = awaitSMTPResponse(openslab_sslclient, "250", "Identification error");
         }
-        activeClient = sslClient;
-    } else
+        if (!response.status) {
+            openslab_sslclient.stop();
+            return response;
+        }
+        activeClient = &openslab_sslclient;
+    }
+    else
 #endif
     {
-        // Client standard (WiFiClient/WiFiClientSecure/EthernetClient a seconda del target)
+        // Standard client path (WiFiClient/WiFiClientSecure/EthernetClient depending on target)
 #if defined(ESP32) || defined(ESP8266)
-        // Se EMAIL_NETWORK_CLASS è WiFiClientSecure, abilita modalità insicura per test rapidi
+        // If EMAIL_NETWORK_CLASS is WiFiClientSecure, allow insecure mode for quick tests
         localClient.setInsecure();
 #endif
         bool connected = localClient.connect(this->smtp_server, this->smtp_port);
@@ -562,10 +497,8 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
         String helo = commandHELO + " "+String(publicIPDescriptor)+" ";
         DEBUG_PRINTLN(helo);
         localClient.println(helo);
-        bool drainedEHLO = false;
         if (this->useEHLO) {
             response = awaitSMTPResponseDrain(localClient, "250", "Identification error");
-            drainedEHLO = true;
         } else {
             response = awaitSMTPResponse(localClient, "250", "Identification error");
         }
@@ -577,10 +510,10 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
         activeClient = &localClient;
     }
 
-    // Usa sempre un riferimento comune
+    // Use a single reference for the selected client
     Client &client = *activeClient;
 
-    // Salta la gestione legacy delle linee aggiuntive se abbiamo già drenato EHLO
+    // Legacy EHLO multi-response handling is skipped because we use the Drain variant above
     bool skipLegacyEHLO = true; // abbiamo usato Drain qui sopra
     if (!skipLegacyEHLO && this->useEHLO == true && this->additionalResponseLineOnHELO == 0) {
         if (DEFAULT_EHLO_RESPONSE_COUNT == 'a'){

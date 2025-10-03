@@ -1,3 +1,22 @@
+/*
+ * EMailSender — Send Email with attachments
+ * Example: STM32 + W5500 Gmail over SSL/TLS
+ * Board: STM32 (e.g., Blue Pill / Nucleo)
+ * Transport: Ethernet (WIZnet W5500)
+ * TLS: SSL/TLS (refer to notes below)
+ * Library: https://github.com/xreef/EMailSender
+ * Author: Renzo Mischianti <renzo.mischianti@gmail.com>
+ * Website: https://www.mischianti.org/
+ * License: MIT
+ * Date: 2025-10-02
+ *
+ * Prerequisites:
+ * - Enable in EMailSenderKey.h the OPEnSLab backend for implicit TLS (465):
+ *     #define EMAIL_ENABLE_OPENSLAB_SSLCLIENT
+ *   (legacy alias supported: #define EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
+ * - STARTTLS on 587 is NOT supported by this backend.
+ */
+
 /**
  * EMailSender ^3.0.0 on STM32
  *
@@ -10,7 +29,7 @@
  * and ethernet w5500 SS
  *
 To activate SSL you must uncomment
-#define SSLCLIENT_WRAPPER
+#define EMAIL_ENABLE_EXTERNAL_SSLCLIENT
 
 #ifndef DEFAULT_EMAIL_NETWORK_TYPE_STM32
 	#define DEFAULT_EMAIL_NETWORK_TYPE_STM32 	NETWORK_W5100

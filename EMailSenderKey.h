@@ -78,16 +78,36 @@
 #define NETWORK_ETHERNET_GENERIC	(13)	// Ethernet generic
 #define NETWORK_MBED_WIFI	(14)	// Arduino GIGA R1 WiFi
 
+// If you want add a wrapper to emulate SSL over Client like EthernetClient
+// #define EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB
+
+// If you want to ENABLE the internal SSLClient wrapper (needed for STARTTLS on port 587)
+// instead of relying solely on the native secure client (e.g., WiFiClientSecure for 465),
+// uncomment the following define. Enabling it increases flash and RAM usage
+// but provides STARTTLS support on non-secure base clients.
+// #define EMAIL_ENABLE_INTERNAL_SSLCLIENT
+
+// Enable integration with OPEnSLab-OSU SSLClient (BearSSL) per AVR/Ethernet o schede che ne hanno bisogno.
+// Usa questo backend solo se hai INSTALLATO la libreria esterna "SSLClient" (OPEnSLab-OSU).
+// STARTTLS (porta 587) NON è supportato da questo backend; è pensato per TLS implicito (465) su Client non-SSL.
+// Di default DISABILITATO: abilitalo nel tuo sketch o nelle build flags definendo
+//   - EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB (preferito) oppure
+//   - EMAIL_ENABLE_OPENSLAB_SSLCLIENT
+#define EMAIL_ENABLE_OPENSLAB_SSLCLIENT
+
+// Consenti opt-in da build flags o sketch: se qualcuno definisce EMAIL_ENABLE_OPENSLAB_SSLCLIENT_FORCE,
+// allora abilita il backend.
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT_FORCE) && !defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT)
+  #define EMAIL_ENABLE_OPENSLAB_SSLCLIENT
+#endif
+
+// Retrocompatibilità: mappa la macro legacy alla nuova
+#if defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB) && !defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT)
+  #define EMAIL_ENABLE_OPENSLAB_SSLCLIENT
+#endif
+
 // if you want force disable SSL if present uncomment this define
 // #define FORCE_DISABLE_SSL
-
-// If you want add a wrapper to emulate SSL over Client like EthernetClient
-// #define SSLCLIENT_WRAPPER
-
-// If you want to completely disable the internal SSLClient wrapper (STARTTLS on 587)
-// and rely only on the native network client (e.g. WiFiClientSecure for 465),
-// uncomment the following define to reduce flash size and requirements on old devices.
-// #define EMAIL_DISABLE_INTERNAL_SSLCLIENT
 
 // esp8266 microcontrollers configuration
 #ifndef DEFAULT_EMAIL_NETWORK_TYPE_ESP8266
@@ -151,8 +171,8 @@
 	#define PUT_OUTSIDE_SCOPE_CLIENT_DECLARATION
 #endif
 
-// This two value can take a number 1..20 or you can specify 'a'
-// but with auto you can lost specified response error
+// These two values can be a numeric 1..20 or 'a' (auto)
+// but with auto you may lose specific response error mapping
 #define DEFAULT_EHLO_RESPONSE_COUNT 6
 #define DEFAULT_CONNECTION_RESPONSE_COUNT 0
 

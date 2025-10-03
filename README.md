@@ -1,11 +1,11 @@
 <div>
 <a href="https://www.mischianti.org/forums/forum/mischiantis-libraries/emailsender-send-email-with-attachments/"><img
-  src="https://github.com/xreef/LoRa_E32_Series_Library/raw/master/resources/buttonSupportForumEnglish.png" alt="Support forum EMailSender English"
+  src="https://github.com/xreef/LoRa_E32_Series_Library/raw/master/resources/buttonSupportForumEnglish.png" alt="Support forum EMailSender (English)"
    align="right"></a>
 </div>
 <div>
 <a href="https://www.mischianti.org/it/forums/forum/le-librerie-di-mischianti/emailsender-invio-di-email-con-allegati/"><img
-  src="https://github.com/xreef/LoRa_E32_Series_Library/raw/master/resources/buttonSupportForumItaliano.png" alt="Forum supporto EMailSender italiano"
+  src="https://github.com/xreef/LoRa_E32_Series_Library/raw/master/resources/buttonSupportForumItaliano.png" alt="Support forum EMailSender (Italian)"
   align="right"></a>
 </div>
 
@@ -15,25 +15,26 @@
 #
 
 # Library to send EMail with attachments 
-Arduino (support W5100 like must be set, and ENC28J60 via UIPEthernet), esp8266 (SPIFFS, LittleFS and SD) (core <=2.4.2 must be set) and esp32 (SPIFFS, LITTLEFS, Ffat and SD), Arduino WiFiNINA SAMD devices (Arduino MKR WiFi 1010, Vidor 4000 UNO WiFi Rev.2 ecc.) (SD). 
+Arduino (supports W5100-like shields and ENC28J60 via UIPEthernet), esp8266 (SPIFFS, LittleFS and SD) (core <=2.4.2 must be set) and esp32 (SPIFFS, LITTLEFS, FFat and SD), Arduino WiFiNINA SAMD devices (Arduino MKR WiFi 1010, Vidor 4000, UNO WiFi Rev.2 etc.) (SD). 
 
-### Complete english tutorial
+### Complete English tutorial
 #### [Send email with attachments (EMailSender v2.x library): Arduino Ethernet](https://www.mischianti.org/2020/06/09/send-email-with-attachments-v2-x-library-arduino-ethernet-part-1/)
 #### [Send email with attachments (EMailSender v2.x library): esp32 and esp8266](https://www.mischianti.org/2020/06/16/send-email-with-attachments-emailsender-v2-x-library-esp32-and-esp8266-part-2/)
 
-### Tutorial completo in italiano
-#### [Inviare email con allegati (libreria v2.x): Arduino Ethernet](https://www.mischianti.org/it/2020/06/09/inviare-email-con-allegati-libreria-v2-x-arduino-ethernet-part-1/)
-#### [Inviare email con allegati (libreria v2.x): esp32 e esp8266](https://www.mischianti.org/it/2020/06/16/inviare-email-con-allegati-libreria-v2-x-esp32-e-esp8266-part-2/)
+### Complete tutorial in Italian
+#### [Send email with attachments (v2.x library): Arduino Ethernet](https://www.mischianti.org/it/2020/06/09/inviare-email-con-allegati-libreria-v2-x-arduino-ethernet-part-1/)
+#### [Send email with attachments (v2.x library): esp32 and esp8266](https://www.mischianti.org/it/2020/06/16/inviare-email-con-allegati-libreria-v2-x-esp32-e-esp8266-part-2/)
 
 ## Change log
+ - 02/10/2025: v3.0.17 Stable STARTTLS (587) on ESP32, implicit TLS fix on 465 (handshake before banner), guaranteed Date header (with fallback), optional OPEnSLab SSLClient backend for Ethernet/AVR, new examples
  - 24/09/2025: v3.0.16 STARTTLS (port 587) support added for ESP32/ESP8266; SAMD and RP2040 require implicit TLS on port 465
  - 20/09/2025: v3.0.15 Add Date header
  - 14/03/2024: v3.0.14 Support Arduino GIGA WiFi
  - 31/10/2023: v3.0.13 Fix wrong implementation of FORCE_DISABLE_SSL
- - 17/10/2023: v3.0.12 Fix warnigs of variable not used #43 thanks to @Patriboom @Andy2015
+ - 17/10/2023: v3.0.12 Fix warnings of variable not used #43 thanks to @Patriboom @Andy2015
  - 16/02/2023: v3.0.11 Add support for Ethernet_Generic
  - 20/01/2023: v3.0.10 Add the management of ESP8266SdFat library on Raspberry Pi Pico [#forum](https://www.mischianti.org/forums/topic/raspberry-pico-w-emailsender)
- - 17/01/2023: v3.0.10 Add the mamagement of auto check of response number #36 thanks to @HACKER-3000 @H3
+ - 17/01/2023: v3.0.10 Add the management of auto check of response number #36 thanks to @HACKER-3000 @H3
  - 13/01/2023: v3.0.9 Fix external storage error 404 ([#forum](https://www.mischianti.org/forums/topic/email-with-sd-files/)
  - 05/01/2023: v3.0.8 Fix distribution list examples
  - 22/09/2022: v3.0.7 Add Raspberry Pi Pico W and rp2040 boards
@@ -46,9 +47,9 @@ Arduino (support W5100 like must be set, and ENC28J60 via UIPEthernet), esp8266 
  - 20/05/2022: v3.0.1 Put inside scope the client declaration (if you don't use SSLClient) for backward compatibility
  - 18/05/2022: v3.0.0 Add STM32 support. Add SSLClient integration to allow send Email with SSL encryption (like Gmail) with ethernet (tested with STM32, ESP32, w5500, and enc28j60), minor fix
  - 12/04/2021: v2.4.3 Fix multiple email send
- - 12/04/2021: v2.4.1 Add support for LITTLEFS and Ffat on esp32 and fix certificate verification from esp32 core 1.0.5 
+ - 12/04/2021: v2.4.1 Add support for LITTLEFS and FFat on esp32 and fix certificate verification from esp32 core 1.0.5 
  - 18/03/2021: v2.3.0 Add support for LittleFS on esp8266
- - 02/01/2021: v2.2.0 New support for SAMD devices via WiFiNINA (Arduino MKR WiFi 1010, Arduino Vidor 4000 and Arduino UNO WiFi Rev.2 ecc.).
+ - 02/01/2021: v2.2.0 New support for SAMD devices via WiFiNINA (Arduino MKR WiFi 1010, Arduino Vidor 4000 and Arduino UNO WiFi Rev.2 etc.).
  - 01/01/2021: v2.1.5 Add possibility to use EHLO instead of HELO, and SASL login.
  - 27/11/2020: v2.1.4 Add more constructor to allow more structure for distribution list (now const char*, char* and String array are supported)
 
@@ -60,11 +61,11 @@ To download.
 click the DOWNLOADS button in the top right corner, rename the uncompressed folder EMailSender. 
 Check that the EMailSender folder contains `EMailSender\\.cpp` and `EMailSender.h`. 
 Place the EMailSender library folder your `<arduinosketchfolder>/libraries/` folder. 
-You may need to create the libraries subfolder if its your first library. 
+You may need to create the libraries subfolder if it's your first library. 
 Restart the IDE.
 
 # EMailSender library to send EMail.
-With this library you can send email with attach:
+With this library you can send email with attachments:
 Arduino
 Network supported
 	- w5100 like shield with Ethernet library
@@ -84,7 +85,7 @@ Storage supported
 	- SD
 	- SPIFFS
 	- LITTLEFS
-	- Ffat
+	- FFat
 
 ## STARTTLS and SMTP ports by platform
 - ESP32/ESP8266: Port 587 with STARTTLS is supported. Port 465 (implicit TLS) also works.
@@ -109,7 +110,7 @@ Default value is quite simple and use GMail as smtp server.
 	EMailSender emailSend("smtp.account@gmail.com", "password");
 ```
 
-If you want use onother provider you can use more complex (but simple) contructor
+If you want use another provider you can use more complex (but simple) constructor
 ```cpp
 	EMailSender(const char* email_login, const char* email_password, const char* email_from, const char* smtp_server, uint16_t smtp_port);
 
@@ -126,7 +127,7 @@ Create a message with the structure EMailMessage
 
 Create array of attachments
 ```cpp
-// 		Two file
+// 		Two files
     EMailSender::FileDescriptior fileDescriptor[2];
     fileDescriptor[1].filename = F("test.txt");
     fileDescriptor[1].url = F("/test.txt");
@@ -154,18 +155,14 @@ Then check the response:
     Serial.println(resp.desc);
     Serial.println(resp.status);
 ```
+## Examples
+New reference examples covering the most common scenarios:
+- ESP32 (STARTTLS on 587): `examples/ESP32_STARTTLS_587/ESP32_STARTTLS_587.ino`
+- ESP8266 (implicit TLS on 465): `examples/ESP8266_TLS_465/ESP8266_TLS_465.ino`
+- Arduino SAMD + WiFiNINA (implicit TLS on 465): `examples/SAMD_WiFiNINA_TLS_465/SAMD_WiFiNINA_TLS_465.ino`
+- Arduino Mega + W5500 (implicit TLS on 465, OPEnSLab backend): `examples/ArduinoMega_W5500_TLS_465_OSU/ArduinoMega_W5500_TLS_465_OSU.ino`
 
-From version 2.1.1 new features distribution list to send CC and CCn email.
-
-Example output:
-
-```cpp
-Connection: ESTABLISHED
-Got IP address: 192.168.1.104
-Sending status: 
-1
-0
-Message sent!
-```
-
-https://downloads.arduino.cc/libraries/logs/github.com/xreef/EMailSender/
+Notes:
+- Gmail requires an App Password (2‑Step Verification). Using your account password will cause `534 5.7.9` errors.
+- The library ensures exactly one `Date:` header is present; on ESP32/ESP8266 it tries NTP (5s timeout), otherwise a safe RFC‑2822 fallback is used.
+- For Ethernet/AVR, enable in `EMailSenderKey.h`: `#define EMAIL_ENABLE_OPENSLAB_SSLCLIENT` and use port 465.

@@ -1,4 +1,4 @@
-// SSLClient.cpp aggiornato dalla libreria ESP_SSLClient
+// SSLClient.cpp adapted from the ESP_SSLClient library
 // https://github.com/mobizt/ESP_SSLClient
 #include "SSLClient.h"
 
@@ -35,7 +35,7 @@ size_t SSLClient::write(const uint8_t *buf, size_t size) {
 int SSLClient::available() {
 #if defined(ESP32)
     if (_usingTLS) {
-        // Non possiamo conoscere i byte decrittati disponibili; approssimiamo con quelli sul trasporto
+        // We cannot know decrypted bytes available; approximate with transport bytes
         return _baseClient->available();
     }
 #endif
@@ -60,7 +60,7 @@ int SSLClient::read(uint8_t *buf, size_t size) {
 int SSLClient::peek() {
 #if defined(ESP32)
     if (_usingTLS) {
-        // Non implementato con mbedTLS senza buffer interno: ritorna -1
+        // Not implemented with mbedTLS without internal buffer: return -1
         return -1;
     }
 #endif
@@ -101,7 +101,7 @@ int SSLClient::bio_recv(void *ctx, unsigned char *buf, size_t len) {
 
 void SSLClient::startTLS(const char *host, uint16_t /*port*/) {
 #if defined(ESP32)
-    // Inizializza mbedTLS e fai handshake sulla socket già connessa
+    // Initialize mbedTLS and perform handshake on the already-connected socket
     _sniHost = host ? String(host) : String();
 
     mbedtls_ssl_init(&_ssl);
@@ -134,7 +134,7 @@ void SSLClient::startTLS(const char *host, uint16_t /*port*/) {
             delay(10);
             continue;
         }
-        // fallimento
+        // failure
         stop();
         return;
     }
@@ -144,6 +144,6 @@ void SSLClient::startTLS(const char *host, uint16_t /*port*/) {
     (void)host;
 #endif
 }
-// ...altri metodi avanzati...
+// ...other advanced methods...
 
 } // namespace sslclient

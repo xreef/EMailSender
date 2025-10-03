@@ -11,22 +11,17 @@
  * and ethernet enc28j60 SS PA3
  * SPI Flash on standard SPI with SS
  *
- To activate SSL you must uncomment
-#define SSLCLIENT_WRAPPER
-
+ * Prerequisites for implicit TLS (465):
+ * - Enable in EMailSenderKey.h:
+ *     #define EMAIL_ENABLE_OPENSLAB_SSLCLIENT
+ *   (legacy alias supported: #define EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
+ * - STARTTLS (587) is not supported by this backend.
+ *
 #ifndef DEFAULT_EMAIL_NETWORK_TYPE_STM32
 	#define DEFAULT_EMAIL_NETWORK_TYPE_STM32 	NETWORK_ETHERNET_ENC
 	#define DEFAULT_INTERNAL_STM32_STORAGE STORAGE_SPIFM
 	#define DEFAULT_EXTERNAL_STM32_STORAGE STORAGE_NONE
 #endif
- *
- * @author Renzo Mischianti <www.mischianti.org>
- * @details www.mischianti.org
- * @version 0.1
- * @date 2022-03-22
- *
- * @copyright Copyright (c) 2022
- *
  */
 
 #include <Arduino.h>
