@@ -36,14 +36,13 @@
 #define EMailSender_h
 
 #include "EMailSenderKey.h"
+#include "Client.h"
+
 #if defined(EMAIL_ENABLE_INTERNAL_SSLCLIENT)
-#include "sslclient/SSLClient.h"
+// Uso un percorso relativo dalla directory principale della libreria
+#include "src/sslclient/SSLClient.h"
 #endif
 
-#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT)
-// Forward declaration to break circular dependency
-class OSUSSLClientAdapter;
-#endif
 
 #ifndef ANALOG_PIN
 #define ANALOG_PIN A0

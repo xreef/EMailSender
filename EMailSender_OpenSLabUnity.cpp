@@ -9,98 +9,23 @@
  *  This is necessary because the Arduino IDE has limitations on how it discovers and compiles source files in subdirectories.
  */
 
+#define EMAIL_ENABLE_OPENSLAB_SSLCLIENT
+
 #if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) && !defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 
-#include "sslclientosu/OSUSSLClientAdapter.cpp"
-#include "sslclientosu/third_party/SSLClient.cpp"
-#include "sslclientosu/third_party/SSLClientParameters.cpp"
+// Includiamo solo i file SSLClient necessari
+// Non includiamo TLS12_only_profile.c che viene già compilato separatamente
+#include "src/sslclientosu/third_party/SSLClient.cpp"
+#include "src/sslclientosu/third_party/SSLClientParameters.cpp"
 
-// BearSSL source files
-#include "sslclientosu/third_party/bearssl/src/aead/ccm.c"
-#include "sslclientosu/third_party/bearssl/src/aead/gcm.c"
-#include "sslclientosu/third_party/bearssl/src/codec/dec16be.c"
-#include "sslclientosu/third_party/bearssl/src/codec/dec16le.c"
-#include "sslclientosu/third_party/bearssl/src/codec/dec32be.c"
-#include "sslclientosu/third_party/bearssl/src/codec/dec32le.c"
-#include "sslclientosu/third_party/bearssl/src/codec/dec64be.c"
-#include "sslclientosu/third_party/bearssl/src/codec/dec64le.c"
-#include "sslclientosu/third_party/bearssl/srcs/ec_prime_fast_256.c"
-#include "sslclientosu/third_party/bearssl/src/ssl/ssl_engine.c"
-#include "sslclientosu/third_party/bearssl/src/ssl/ssl_hashes.c"
-#include "sslclientosu/third_party/bearssl/src/ssl/ssl_hs_client.c"
-#include "sslclientosu/third_party/bearssl/src/ssl/ssl_io.c"
-#include "sslclientosu/third_party/bearssl/src/ssl/ssl_key_share.c"
-#include "sslclientosu/third_party/bearssl/src/ssl/ssl_lru.c"
-#include "sslclientosu/third_party/bearssl/src/ssl/ssl_rec_cbc.c"
-#include "sslclientosu/third_party/bearssl/src/ssl/ssl_rec_chapol.c"
-#include "sslclientosu/third_party/bearssl/src/ssl/ssl_rec_gcm.c"
-#include "sslclientosu/third_party/bearssl/src/ssl/ssl_sig.c"
-#include "sslclientosu/third_party/bearssl/src/ssl/ssl_sig_ecdsa.c"
-#include "sslclientosu/third_party/bearssl/src/ssl/ssl_sig_rsa.c"
-#include "sslclientosu/third_party/bearssl/src/ssl/ssl_tab.c"
-#include "sslclientosu/third_party/bearssl/src/symcipher/aes_big_cbcdec.c"
-#include "sslclientosu/third_party/bearssl/src/symcipher/aes_big_cbcenc.c"
-#include "sslclientosu/third_party/bearssl/src/symcipher/aes_big_ctr.c"
-#include "sslclientosu/third_party/bearssl/src/symcipher/aes_common.c"
-#include "sslclientosu/third_party/bearssl/src/symcipher/aes_ct.c"
-#include "sslclientosu/third_party/bearssl/src/symcipher/aes_ct64.c"
-#include "sslclientosu/third_party/bearssl/src/symcipher/aes_small_dec.c"
-#include "sslclientosu/third_party/bearssl/src/symcipher/aes_small_enc.c"
-#include "sslclientosu/third_party/bearssl/src/symcipher/chacha20_ct.c"
-#include "sslclientosu/third_party/bearssl/src/symcipher/des_ct.c"
-#include "sslclientosu/third_party/bearssl/src/symcipher/des_support.c"
-#include "sslclientosu/third_party/bearssl/src/symcipher/poly1305_ctmul.c"
-#include "sslclientosu/third_party/bearssl/src/symcipher/poly1305_ctmul32.c"
-#include "sslclientosu/third_party/bearssl/src/hash/sha2big.c"
-#include "sslclientosu/third_party/bearssl/src/hash/sha2small.c"
-#include "sslclientosu/third_party/bearssl/src/hash/md5.c"
-#include "sslclientosu/third_party/bearssl/src/hash/md5sha1.c"
-#include "sslclientosu/third_party/bearssl/src/hash/sha1.c"
-#include "sslclientosu/third_party/bearssl/src/int/i15_add.c"
-#include "sslclientosu/third_party/bearssl/src/int/i15_bitlen.c"
-#include "sslclientosu/third_party/bearssl/src/int/i15_decmod.c"
-#include "sslclientosu/third_party/bearssl/src/int/i15_decode.c"
-#include "sslclientosu/third_party/bearssl/src/int/i15_decred.c"
-#include "sslclientosu/third_party/bearssl/src/int/i15_encode.c"
-#include "sslclientosu/third_party/bearssl/src/int/i15_fmp.c"
-#include "sslclientosu/third_party/bearssl/src/int/i15_modpow.c"
-#include "sslclientosu/third_party/bearssl/src/int/i15_modpow2.c"
-#include "sslclientosu/third_party/bearssl/src/int/i15_montmul.c"
-#include "sslclientosu/third_party/bearssl/src/int/i15_mul.c"
-#include "sslclientosu/third_party/bearssl/src/int/i15_muladd.c"
-#include "sslclientosu/third_party/bearssl/src/int/i15_reduce.c"
-#include "sslclientosu/third_party/bearssl/src/int/i15_rshift.c"
-#include "sslclientosu/third_party/bearssl/src/int/i15_sqr.c"
-#include "sslclientosu/third_party/bearssl/src/int/i15_sub.c"
-#include "sslclientosu/third_party/bearssl/src/int/i15_tmont.c"
-#include "sslclientosu/third_party/bearssl/src/kdf/hkdf.c"
-#include "sslclientosu/third_party/bearssl/src/kdf/shake.c"
-#include "sslclientosu/third_party/bearssl/src/mac/hmac.c"
-#include "sslclientosu/third_party/bearssl/src/mac/hmac_ct.c"
-#include "sslclientosu/third_party/bearssl/src/prf/prf_hmac.c"
-#include "sslclientosu/third_party/bearssl/src/prf/prf_sha256.c"
-#include "sslclientosu/third_party/bearssl/src/rand/hmac_drbg.c"
-#include "sslclientosu/third_party/bearssl/src/rand/sysrng.c"
-#include "sslclientosu/third_party/bearssl/src/rsa/rsa_i15_pkcs1_sign.c"
-#include "sslclientosu/third_party/bearssl/src/rsa/rsa_i15_pkcs1_vrfy.c"
-#include "sslclientosu/third_party/bearssl/src/rsa/rsa_i15_priv.c"
-#include "sslclientosu/third_party/bearssl/src/rsa/rsa_i15_pub.c"
-#include "sslclientosu/third_party/bearssl/src/ec/ec_all_m15.c"
-#include "sslclientosu/third_party/bearssl/src/ec/ec_p256_m15.c"
-#include "sslclientosu/third_party/bearssl/src/ec/ec_prime_i15.c"
-#include "sslclientosu/third_party/bearssl/src/ec/ec_secp256r1.c"
-#include "sslclientosu/third_party/bearssl/src/ec/ec_pubkey.c"
-#include "sslclientosu/third_party/bearssl/src/ec/ecdsa_i15_sign_raw.c"
-#include "sslclientosu/third_party/bearssl/src/ec/ecdsa_i15_vrfy_raw.c"
-#include "sslclientosu/third_party/bearssl/src/ec/ecdsa_atr.c"
-#include "sslclientosu/third_party/bearssl/src/x509/x509_decoder.c"
-#include "sslclientosu/third_party/bearssl/src/x509/x509_minimal.c"
-#include "sslclientosu/third_party/bearssl/src/x509/x509_minimal_full.c"
-#include "sslclientosu/third_party/bearssl/src/codec/enc16be.c"
-#include "sslclientosu/third_party/bearssl/src/codec/enc16le.c"
-#include "sslclientosu/third_party/bearssl/src/codec/enc32be.c"
-#include "sslclientosu/third_party/bearssl/src/codec/enc32le.c"
-#include "sslclientosu/third_party/bearssl/src/codec/enc64be.c"
-#include "sslclientosu/third_party/bearssl/src/codec/enc64le.c"
+// Definiamo qui il simbolo mancante br_ec_prime_fast_256
+extern "C" {
+  #include "src/sslclientosu/third_party/bearssl_ec.h"
+
+  // Usa br_ec_p256_m15 che è già disponibile come simbolo
+  // br_ec_prime_fast_256 è solo un alias per br_ec_p256_m15
+  const br_ec_impl br_ec_prime_fast_256 = br_ec_p256_m15;
+}
 
 #endif // EMAIL_ENABLE_OPENSLAB_SSLCLIENT
+// file intentionally empty -- uses individual sources in sslclient and sslclientosu

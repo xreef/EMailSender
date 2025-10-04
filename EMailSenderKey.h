@@ -85,7 +85,7 @@
 // instead of relying solely on the native secure client (e.g., WiFiClientSecure for 465),
 // uncomment the following define. Enabling it increases flash and RAM usage
 // but provides STARTTLS support on non-secure base clients.
-// #define EMAIL_ENABLE_INTERNAL_SSLCLIENT
+//#define EMAIL_ENABLE_INTERNAL_SSLCLIENT
 
 // Enable integration with OPEnSLab-OSU SSLClient (BearSSL) per AVR/Ethernet o schede che ne hanno bisogno.
 // Usa questo backend solo se hai INSTALLATO la libreria esterna "SSLClient" (OPEnSLab-OSU).
@@ -93,7 +93,7 @@
 // Di default DISABILITATO: abilitalo nel tuo sketch o nelle build flags definendo
 //   - EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB (preferito) oppure
 //   - EMAIL_ENABLE_OPENSLAB_SSLCLIENT
-#define EMAIL_ENABLE_OPENSLAB_SSLCLIENT
+ #define EMAIL_ENABLE_OPENSLAB_SSLCLIENT
 
 // Consenti opt-in da build flags o sketch: se qualcuno definisce EMAIL_ENABLE_OPENSLAB_SSLCLIENT_FORCE,
 // allora abilita il backend.
