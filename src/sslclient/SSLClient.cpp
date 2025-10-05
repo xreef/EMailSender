@@ -1,5 +1,11 @@
 // SSLClient.cpp adapted from the ESP_SSLClient library
 // https://github.com/mobizt/ESP_SSLClient
+
+// Questo file contiene l'implementazione SSLClient per ESP32/ESP8266
+// Deve essere compilato SOLO se EMAIL_ENABLE_INTERNAL_SSLCLIENT è abilitato
+// Ultima modifica: forza rebuild per applicare le guard
+#if defined(EMAIL_ENABLE_INTERNAL_SSLCLIENT)
+
 #include "SSLClient.h"
 
 namespace sslclient {
@@ -147,3 +153,5 @@ void SSLClient::startTLS(const char *host, uint16_t /*port*/) {
 // ...other advanced methods...
 
 } // namespace sslclient
+
+#endif // EMAIL_ENABLE_INTERNAL_SSLCLIENT

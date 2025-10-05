@@ -58,10 +58,27 @@ extern "C" {
  */
 
 /** \brief Optimal input buffer size. */
-#define BR_SSL_BUFSIZE_INPUT    (16384 + 325)
+// Configurabile: usa buffer ridotti per MCU con poca RAM (es. Arduino Mega)
+#ifndef BR_SSL_BUFSIZE_INPUT
+  #if defined(ARDUINO_ARCH_AVR) || defined(BR_USE_SMALL_SSL_BUFFERS)
+    // Buffer ridotto per Arduino AVR (Mega, Uno, ecc.) con solo 8KB RAM
+    #define BR_SSL_BUFSIZE_INPUT    (2048 + 325)
+  #else
+    // Buffer standard per piattaforme con RAM sufficiente
+    #define BR_SSL_BUFSIZE_INPUT    (16384 + 325)
+  #endif
+#endif
 
 /** \brief Optimal output buffer size. */
-#define BR_SSL_BUFSIZE_OUTPUT   (16384 + 85)
+#ifndef BR_SSL_BUFSIZE_OUTPUT
+  #if defined(ARDUINO_ARCH_AVR) || defined(BR_USE_SMALL_SSL_BUFFERS)
+    // Buffer ridotto per Arduino AVR (Mega, Uno, ecc.) con solo 8KB RAM
+    #define BR_SSL_BUFSIZE_OUTPUT   (1024 + 85)
+  #else
+    // Buffer standard per piattaforme con RAM sufficiente
+    #define BR_SSL_BUFSIZE_OUTPUT   (16384 + 85)
+  #endif
+#endif
 
 /** \brief Optimal buffer size for monodirectional engine
     (shared input/output buffer). */
@@ -533,7 +550,7 @@ struct br_sslrec_in_gcm_class_ {
  * This class type extends the encryption engine class with an
  * initialisation method that receives the parameters needed
  * for GCM processing: block cipher implementation, block cipher key,
- * GHASH implementation, and 4-byte IV.
+ * GHASH parameters, and 4-byte IV.
  */
 typedef struct br_sslrec_out_gcm_class_ br_sslrec_out_gcm_class;
 struct br_sslrec_out_gcm_class_ {
@@ -1868,7 +1885,7 @@ void br_ssl_engine_inject_entropy(br_ssl_engine_context *cc,
  * \brief Get the "server name" in this engine.
  *
  * For clients, this is the name provided with `br_ssl_client_reset()`;
- * for servers, this is the name received from the client as part of the
+ * for servers, the name received from the client as part of the
  * ClientHello message. If there is no such name (e.g. the client did
  * not send an SNI extension) then the returned string is empty
  * (returned pointer points to a byte of value 0).
@@ -3356,7 +3373,7 @@ struct br_ssl_session_cache_class_ {
 };
 
 /**
- * \brief Context for a basic cache system.
+ * \brief Context structure for a basic cache system.
  *
  * The system stores session parameters in a buffer provided at
  * initialisation time. Each entry uses exactly 100 bytes, and
@@ -3806,8 +3823,7 @@ br_ssl_server_set_policy(br_ssl_server_context *cc,
  * This function uses a policy context included in the server context.
  * It configures use of a single server certificate chain with a RSA
  * private key. The `allowed_usages` is a combination of usages, namely
- * `BR_KEYTYPE_KEYX` and/or `BR_KEYTYPE_SIGN`; this enables or disables
- * the corresponding cipher suites (i.e. `TLS_RSA_*` use the RSA key for
+ * `BR_KEYTYPE_KEYX` and/or `BR_KEYTYPE_SIGN`; this enables or disables the corresponding cipher suites (i.e. `TLS_RSA_*` use the RSA key for
  * key exchange, while `TLS_ECDHE_RSA_*` use the RSA key for signatures).
  *
  * \param cc               server context.
@@ -3866,7 +3882,7 @@ void br_ssl_server_set_single_ec(br_ssl_server_context *cc,
  * setting the `BR_OPT_TOLERATE_NO_CLIENT_AUTH` flag.
  *
  * The provided array is linked in, not copied, so that pointer must
- * remain valid as long as anchor names may be used.
+ * remain valid as long as they may be used.
  *
  * \param cc         server context.
  * \param ta_names   encoded trust anchor names.

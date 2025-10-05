@@ -20,6 +20,7 @@
  */
 
 #include "SSLClient.h"
+#include "../../EMailSenderKey.h"
 
 /* see SSLClient.h */
 SSLClient::SSLClient(   Client& client, 

@@ -15,12 +15,12 @@
 
 // Includiamo solo i file SSLClient necessari
 // Non includiamo TLS12_only_profile.c che viene già compilato separatamente
-#include "src/sslclientosu/third_party/SSLClient.cpp"
-#include "src/sslclientosu/third_party/SSLClientParameters.cpp"
+#include "sslclientosu/third_party/SSLClient.cpp.inc"
+#include "sslclientosu/third_party/SSLClientParameters.cpp.inc"
 
 // Definiamo qui il simbolo mancante br_ec_prime_fast_256
 extern "C" {
-  #include "src/sslclientosu/third_party/bearssl_ec.h"
+  #include "sslclientosu/third_party/bearssl_ec.h"
 
   // Usa br_ec_p256_m15 che è già disponibile come simbolo
   // br_ec_prime_fast_256 è solo un alias per br_ec_p256_m15
@@ -28,4 +28,3 @@ extern "C" {
 }
 
 #endif // EMAIL_ENABLE_OPENSLAB_SSLCLIENT
-// file intentionally empty -- uses individual sources in sslclient and sslclientosu

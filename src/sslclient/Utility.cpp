@@ -1,6 +1,10 @@
 // Utility.cpp aggiornato dalla libreria ESP_SSLClient
 // https://github.com/mobizt/ESP_SSLClient
 
+// Questo file deve essere compilato SOLO se EMAIL_ENABLE_INTERNAL_SSLCLIENT è abilitato
+// Ultima modifica: forza rebuild per applicare le guard
+#if defined(EMAIL_ENABLE_INTERNAL_SSLCLIENT)
+
 #include "Utility.h"
 
 namespace sslclient {
@@ -33,3 +37,5 @@ void Utility::printBuffer(const uint8_t *buf, size_t len) {
 }
 
 } // namespace sslclient
+
+#endif // EMAIL_ENABLE_INTERNAL_SSLCLIENT
