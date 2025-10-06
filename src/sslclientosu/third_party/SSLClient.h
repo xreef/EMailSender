@@ -465,8 +465,23 @@ private:
      * or shrunk to [255, BR_SSL_BUFSIZE_BIDI], depending on the memory and speed needs of your application.
      * As a rule of thumb SSLClient will fail if it does not have at least 8000 bytes when starting a
      * connection.
+     *
+     * Configurabile tramite define SSL_CLIENT_IOBUF_SIZE (default: 2048 per AVR, 8192 per altre piattaforme).
+     * Valori suggeriti per Arduino Mega:
+     *   - 1024: minimo assoluto (potrebbe fallire con certificati grandi)
+     *   - 1536: compromesso ragionevole
+     *   - 2048: valore di default sicuro
      */
-    unsigned char m_iobuf[2048];
+#ifndef SSL_CLIENT_IOBUF_SIZE
+  #if defined(ARDUINO_ARCH_AVR)
+    // Buffer ridotto per Arduino AVR (Mega) - puoi ridurre ulteriormente con build_flags
+    #define SSL_CLIENT_IOBUF_SIZE 2048
+  #else
+    // Buffer più grande per piattaforme con più RAM
+    #define SSL_CLIENT_IOBUF_SIZE 8192
+  #endif
+#endif
+    unsigned char m_iobuf[SSL_CLIENT_IOBUF_SIZE];
     // store the index of where we are writing in the buffer
     // so we can send our records all at once to prevent
     // weird timing issues

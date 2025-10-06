@@ -102,12 +102,25 @@ Complete tutorials and articles available on [mischianti.org](https://www.mischi
 |----------|------|----------|---------|----------|
 | **ESP32** | ✅ | ✅ | ✅ | ✅ |
 | **ESP8266** | ✅ | ✅ | ✅ | ✅ |
-| **Arduino Mega/Uno** | ❌ | ✅ | ✅* | ✅* |
+| **Arduino Mega/Uno** | ❌ | ✅ | ❌ | ❌ |
 | **Arduino SAMD** | ✅ | ✅ | ✅ | ✅ |
 | **STM32** | ❌ | ✅ | ✅ | ✅ |
 | **Raspberry Pi Pico (RP2040)** | ✅ | ✅ | ✅ | ✅ |
 
-\* With SSLClient library for Ethernet shields
+> **⚠️ IMPORTANTE - Arduino Mega/Uno e SSL/TLS:**
+> 
+> **Arduino Mega e Uno NON supportano SSL/TLS** a causa delle severe limitazioni di RAM:
+> - Arduino Mega ha solo **8KB di RAM**
+> - Arduino Uno ha solo **2KB di RAM**
+> - BearSSL per SSL/TLS richiede almeno **24KB di RAM** per i buffer di crittografia
+> 
+> **Soluzioni alternative per Arduino Mega/Uno:**
+> 1. ✅ **Usa SMTP non sicuro (porta 25)** - Funziona ma non raccomandato
+> 2. ✅ **Usa un relay SMTP locale** - Configura un server locale che gestisce SSL
+> 3. ✅ **Passa a ESP32/ESP8266** - Hanno più RAM e supporto nativo SSL/TLS
+> 4. ✅ **Usa Arduino SAMD (MKR WiFi 1010)** - Ha 32KB di RAM e supporta SSL/TLS
+> 
+> **Gli esempi Arduino Mega/Uno in questa libreria usano solo SMTP non sicuro!**
 
 ## 🌐 Supported Network Interfaces
 
