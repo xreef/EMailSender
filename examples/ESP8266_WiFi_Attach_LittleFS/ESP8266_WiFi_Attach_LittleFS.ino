@@ -95,7 +95,13 @@ void setup()
 
     EMailSender::EMailMessage message;
     message.subject = "Subject";
-    message.message = "Hi, how are you?<br>I'm fine.<br>www.mischianti.org";
+    message.message = "Hi, how are you?<br>I'm fine.<br><br>";
+    message.message += "This email includes a file attachment from LittleFS.<br><br>";
+    message.message += "This email was sent using EMailSender Library v4.0.0<br><br>";
+    message.message += "---<br>";
+    message.message += "<strong>By Renzo Mischianti</strong><br>";
+    message.message += "Website: <a href='https://www.mischianti.org'>www.mischianti.org</a><br>";
+    message.message += "GitHub: <a href='https://github.com/xreef/EMailSender'>EMailSender Library</a>";
 
     EMailSender::FileDescriptior fileDescriptor[2];
     fileDescriptor[1].filename = F("test.txt");

@@ -160,7 +160,13 @@ void setup() {
 
    EMailSender::EMailMessage message;
    message.subject = "Soggetto";
-   message.message = "Ciao come stai<br>io bene.<br>www.mischianti.org";
+   message.message = "Hi, how are you?<br>I'm fine.<br><br>";
+   message.message += "This email includes a file attachment from SPI Flash.<br><br>";
+   message.message += "This email was sent using EMailSender Library v4.0.0<br><br>";
+   message.message += "---<br>";
+   message.message += "<strong>By Renzo Mischianti</strong><br>";
+   message.message += "Website: <a href='https://www.mischianti.org'>www.mischianti.org</a><br>";
+   message.message += "GitHub: <a href='https://github.com/xreef/EMailSender'>EMailSender Library</a>";
 
    // Send to 3 different email
    const char* arrayOfEmail[] = {"destination1@gmail.com", "destination2@yahoo.com", "destination3@other.com"};

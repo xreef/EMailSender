@@ -157,8 +157,11 @@ void sendTestEmail() {
   message.message += "✓ 300 emails/day free tier\n";
   message.message += "✓ No domain verification needed\n";
   message.message += "✓ Simple AUTH LOGIN authentication\n\n";
-  message.message += "Timestamp: " + String(millis() / 1000) + " seconds\n";
-  message.message += "\nSent from Arduino Mega 2560";
+  message.message += "Timestamp: " + String(millis() / 1000) + " seconds\n\n";
+  message.message += "---\n";
+  message.message += "Sent using EMailSender Library by Renzo Mischianti\n";
+  message.message += "More info: https://www.mischianti.org\n";
+  message.message += "GitHub: https://github.com/xreef/EMailSender\n";
 
   message.mime = MIME_TEXT_PLAIN;
 
@@ -198,4 +201,3 @@ void sendTestEmail() {
 
   Serial.println("\n========================================\n");
 }
-
