@@ -198,14 +198,22 @@ static bool readLineWithTimeout(Client &client, String &line, uint16_t timeOut) 
     line = "";
     uint32_t ts = millis();
     while (millis() - ts < timeOut) {
-        int b = client.read();
-        if (b >= 0) {
-            char ch = (char)b;
-            line += ch;
-            if (ch == '\n') return true;
-        } else {
-            delay(5);
-        }
+        // ✅ Verifica prima se ci sono dati disponibili
+        while (client.available() > 0) {
+            int b = client.read();
+            if (b >= 0) {
+                char ch = (char)b;
+                line += ch;
+                if (ch == '\n') return true;
+        	} else {
+		        // ✅ Delay condizionale in base alla piattaforma
+		        #if defined(ARDUINO_AVR_MEGA2560) || defined(ARDUINO_AVR_MEGA) || defined(__AVR_ATmega2560__)
+	 	           delay(10);  // Arduino Mega/AVR: 50ms per Ethernet lento
+		        #else
+	 	           delay(5);  // ESP32/ESP8266/altri: 10ms sufficiente
+		        #endif
+ 	       }
+		}
     }
     // Timeout: return true if something was read (partial line), otherwise false
     return line.length() > 0;
@@ -777,8 +785,12 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
     if (!response.status) { activeClient->flush(); activeClient->stop(); return response; }
 
     activeClient->print(F("From: "));
-    if (this->name_from){ activeClient->print(this->name_from); }
-    activeClient->print(F(" <"));
+    if (this->name_from){
+        activeClient->print(F("\""));  // ✅ Aggiunge virgolette
+        activeClient->print(this->name_from);
+        activeClient->print(F("\" "));  // ✅ Chiude virgolette
+    }
+    activeClient->print(F("<"));
     activeClient->print(this->email_from);
     activeClient->println(F(">"));
 
@@ -803,7 +815,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
     }
 
     if (sizeOfCCn>0){
-        activeClient->print(F("CCn: "));
+        activeClient->print(F("Bcc: "));  // ✅ CORRETTO: era "CCn"
         for (;cont<sizeOfTo+sizeOfCc+sizeOfCCn;cont++){
             activeClient->print(F("<"));
             activeClient->print(to[cont]);
@@ -838,6 +850,14 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
     activeClient->println(F("MIME-Version: 1.0"));
     activeClient->println(F("Content-Type: Multipart/mixed; boundary=frontier"));
 
+    activeClient->println();  // ✅ RIGA VUOTA OBBLIGATORIA (RFC 2822)
+
+    // ✅ Flush per assicurare che gli header siano inviati
+    #if defined(ARDUINO_AVR_MEGA2560) || defined(ARDUINO_AVR_MEGA) || defined(__AVR_ATmega2560__)
+        activeClient->flush();
+        delay(100);  // Piccolo delay per Arduino Mega/Ethernet
+    #endif
+
     activeClient->println(F("--frontier"));
 
     activeClient->print(F("Content-Type: "));
@@ -853,6 +873,12 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
         activeClient->println(email.message);
     }
     activeClient->println();
+
+    // ✅ Flush dopo l'invio del corpo del messaggio
+    #if defined(ARDUINO_AVR_MEGA2560) || defined(ARDUINO_AVR_MEGA) || defined(__AVR_ATmega2560__)
+        activeClient->flush();
+        delay(100);
+    #endif
 
 #ifdef STORAGE_INTERNAL_ENABLED
   bool spiffsActive = false;

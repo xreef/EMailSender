@@ -40,11 +40,11 @@
 
 // If you want disable attachments and save memory comment this define
 // ATTACHMENTS DISABLED to save RAM on Arduino Mega
-//#define ENABLE_ATTACHMENTS
+#define ENABLE_ATTACHMENTS
 
 // Uncomment to enable printing out nice debug messages.
 // DEBUG DISABLED to save RAM on Arduino Mega
-//#define EMAIL_SENDER_DEBUG
+#define EMAIL_SENDER_DEBUG
 
 // Ensure Date header is generated once by the library
 #define MANAGE_DATE_HEADER
@@ -96,7 +96,7 @@
 // Di default DISABILITATO: abilitalo nel tuo sketch o nelle build flags definendo
 //   - EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB (preferito) oppure
 //   - EMAIL_ENABLE_OPENSLAB_SSLCLIENT
-#define EMAIL_ENABLE_OPENSLAB_SSLCLIENT
+// #define EMAIL_ENABLE_OPENSLAB_SSLCLIENT
 
 // Consenti opt-in da build flags o sketch: se qualcuno definisce EMAIL_ENABLE_OPENSLAB_SSLCLIENT_FORCE,
 // allora abilita il backend.
