@@ -109,18 +109,18 @@ Complete tutorials and articles available on [mischianti.org](https://www.mischi
 
 > **⚠️ IMPORTANTE - Arduino Mega/Uno e SSL/TLS:**
 > 
-> **Arduino Mega e Uno NON supportano SSL/TLS** a causa delle severe limitazioni di RAM:
-> - Arduino Mega ha solo **8KB di RAM**
-> - Arduino Uno ha solo **2KB di RAM**
-> - BearSSL per SSL/TLS richiede almeno **24KB di RAM** per i buffer di crittografia
+> **Arduino Mega and Uno DO NOT support SSL/TLS** due to severe RAM limitations:
+> - Arduino Mega has only **8KB of RAM**
+> - Arduino Uno has only **2KB of RAM**
+> - BearSSL for SSL/TLS requires at least **24KB of RAM** for encryption buffers
 > 
-> **Soluzioni alternative per Arduino Mega/Uno:**
-> 1. ✅ **Usa SMTP non sicuro (porta 25)** - Funziona ma non raccomandato
-> 2. ✅ **Usa un relay SMTP locale** - Configura un server locale che gestisce SSL
-> 3. ✅ **Passa a ESP32/ESP8266** - Hanno più RAM e supporto nativo SSL/TLS
-> 4. ✅ **Usa Arduino SAMD (MKR WiFi 1010)** - Ha 32KB di RAM e supporta SSL/TLS
+> **Alternative solutions for Arduino Mega/Uno:**
+> 1. ✅ **Use non-secure SMTP (port 25)** - Works but not recommended
+> 2. ✅ **Use a local SMTP relay** - Configure a local server that handles SSL
+> 3. ✅ **Switch to ESP32/ESP8266** - They have more RAM and native SSL/TLS support
+> 4. ✅ **Use Arduino SAMD (MKR WiFi 1010)** - Has 32KB RAM and supports SSL/TLS
 > 
-> **Gli esempi Arduino Mega/Uno in questa libreria usano solo SMTP non sicuro!**
+> **Arduino Mega/Uno examples in this library use only non-secure SMTP!**
 
 ## 🌐 Supported Network Interfaces
 
