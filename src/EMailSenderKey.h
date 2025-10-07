@@ -44,7 +44,7 @@
 
 // Uncomment to enable printing out nice debug messages.
 // DEBUG DISABLED to save RAM on Arduino Mega
-#define EMAIL_SENDER_DEBUG
+// #define EMAIL_SENDER_DEBUG
 
 // Ensure Date header is generated once by the library
 #define MANAGE_DATE_HEADER
