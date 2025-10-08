@@ -1,5 +1,7 @@
 # EMailSender Library v4.0.0
 
+![EMailSender Logo](https://raw.githubusercontent.com/xreef/EMailSender/master/resources/EMailSenderLogo.jpg)
+
 [![arduino-library-badge](https://www.ardu-badge.com/badge/EMailSender.svg?)](https://www.ardu-badge.com/EMailSender)
 
 A comprehensive Arduino library for sending emails via SMTP with full support for attachments, multiple recipients, and secure connections (SSL/TLS and STARTTLS).
