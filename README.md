@@ -271,7 +271,7 @@ For boards with limited RAM (like Arduino Uno):
 - You MUST use App Passwords now
 - Regular account password will not work
 
-## 📝 Changelog v4.0.0
+## 📝 Changelog v4.0.0 - 08/10/2025
 
 ### New Features
 - ✨ **STARTTLS support (Port 587)** - Full implementation for secure email on port 587
@@ -302,6 +302,31 @@ Most code will work without changes. If using custom client configuration:
 - Check `EMailSenderKey.h` for new defines
 - Update authentication methods if using advanced features
 - Test STARTTLS connections (port 587) for better security
+
+## Change log
+- 14/03/2024: v3.0.14 Support Arduino GIGA WiFi
+- 31/10/2023: v3.0.13 Fix wrong implementation of FORCE_DISABLE_SSL
+- 17/10/2023: v3.0.12 Fix warnigs of variable not used #43 thanks to @Patriboom @Andy2015
+- 16/02/2023: v3.0.11 Add support for Ethernet_Generic
+- 20/01/2023: v3.0.10 Add the management of ESP8266SdFat library on Raspberry Pi Pico [#forum](https://www.mischianti.org/forums/topic/raspberry-pico-w-emailsender)
+- 17/01/2023: v3.0.10 Add the mamagement of auto check of response number #36 thanks to @HACKER-3000 @H3
+- 13/01/2023: v3.0.9 Fix external storage error 404 ([#forum](https://www.mischianti.org/forums/topic/email-with-sd-files/)
+- 05/01/2023: v3.0.8 Fix distribution list examples
+- 22/09/2022: v3.0.7 Add Raspberry Pi Pico W and rp2040 boards
+- 20/09/2022: v3.0.7 Add STM32 management for https://github.com/rogerclarkmelbourne/Arduino_STM32 library.
+- 16/08/2022: v3.0.6 Add FORCE_DISABLE_SSL to disable SSL if present
+- 19/07/2022: v3.0.5 Additional fix on additional response management ([#26](https://github.com/xreef/EMailSender/issues/26))
+- 12/07/2022: v3.0.4 Fixed attachment issue on SPIFFS and LittleFS
+- 06/07/2022: v3.0.3 Manage multiple response message after connect and HELO ([#26](https://github.com/xreef/EMailSender/issues/26))
+- 03/06/2022: v3.0.2 Add possibility to set additionalResponseLineOnConnection with void setAdditionalResponseLineOnConnection(uint8_t numLines = 0), needed if on connection you receive 220 response as error, and add Ethernet2.
+- 20/05/2022: v3.0.1 Put inside scope the client declaration (if you don't use SSLClient) for backward compatibility
+- 18/05/2022: v3.0.0 Add STM32 support. Add SSLClient integration to allow send Email with SSL encryption (like Gmail) with ethernet (tested with STM32, ESP32, w5500, and enc28j60), minor fix
+- 12/04/2021: v2.4.3 Fix multiple email send
+- 12/04/2021: v2.4.1 Add support for LITTLEFS and Ffat on esp32 and fix certificate verification from esp32 core 1.0.5
+- 18/03/2021: v2.3.0 Add support for LittleFS on esp8266
+- 02/01/2021: v2.2.0 New support for SAMD devices via WiFiNINA (Arduino MKR WiFi 1010, Arduino Vidor 4000 and Arduino UNO WiFi Rev.2 ecc.).
+- 01/01/2021: v2.1.5 Add possibility to use EHLO instead of HELO, and SASL login.
+- 27/11/2020: v2.1.4 Add more constructor to allow more structure for distribution list (now const char*, char* and String array are supported)
 
 ## 📄 License
 
