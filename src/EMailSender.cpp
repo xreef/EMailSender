@@ -83,10 +83,10 @@ int base64_enc_length(int plainLen) {
 const char* encode64_f(char* input, uint8_t len) {
   // encoding
 
-	DEBUG_PRINTLN(F("Encoding"));
+	EMAIL_SENDER_DEBUG_PRINTLN(F("Encoding"));
 
-	DEBUG_PRINTLN(input);
-	DEBUG_PRINTLN(len);
+	EMAIL_SENDER_DEBUG_PRINTLN(input);
+	EMAIL_SENDER_DEBUG_PRINTLN(len);
 
   //int encodedLen =
  base64_enc_length(len);
@@ -198,22 +198,31 @@ static bool readLineWithTimeout(Client &client, String &line, uint16_t timeOut) 
     line = "";
     uint32_t ts = millis();
     while (millis() - ts < timeOut) {
-        // ✅ Verifica prima se ci sono dati disponibili
+        // ✅ Prima prova a leggere se available() indica dati
         while (client.available() > 0) {
             int b = client.read();
             if (b >= 0) {
                 char ch = (char)b;
                 line += ch;
                 if (ch == '\n') return true;
-        	} else {
-		        // ✅ Delay condizionale in base alla piattaforma
-		        #if defined(ARDUINO_AVR_MEGA2560) || defined(ARDUINO_AVR_MEGA) || defined(__AVR_ATmega2560__)
-	 	           delay(10);  // Arduino Mega/AVR: 50ms per Ethernet lento
-		        #else
-	 	           delay(5);  // ESP32/ESP8266/altri: 10ms sufficiente
-		        #endif
- 	       }
-		}
+            }
+        }
+
+        // ✅ Anche se available() == 0, prova comunque a leggere
+        // Questo è necessario per SSL dove i dati potrebbero essere nel buffer interno mbedTLS
+        int b = client.read();
+        if (b >= 0) {
+            char ch = (char)b;
+            line += ch;
+            if (ch == '\n') return true;
+        } else {
+            // Nessun dato disponibile, aspetta un po'
+            #if defined(ARDUINO_AVR_MEGA2560) || defined(ARDUINO_AVR_MEGA) || defined(__AVR_ATmega2560__)
+                delay(10);  // Arduino Mega/AVR: 10ms per Ethernet lento
+            #else
+                delay(5);   // ESP32/ESP8266/altri: 5ms sufficiente
+            #endif
+        }
     }
     // Timeout: return true if something was read (partial line), otherwise false
     return line.length() > 0;
@@ -232,7 +241,7 @@ EMailSender::Response EMailSender::awaitSMTPResponse(Client &client,
 		return response;
 	}
 	_serverResponce = line;
-	DEBUG_PRINTLN(_serverResponce);
+	EMAIL_SENDER_DEBUG_PRINTLN(_serverResponce);
 	if (resp && _serverResponce.indexOf(resp) == -1){
 		response.code = resp;
 		response.desc = respDesc + String(" (") + _serverResponce + String(")");
@@ -256,7 +265,7 @@ EMailSender::Response EMailSender::awaitSMTPResponseDrain(Client &client,
         bool ok = readLineWithTimeout(client, line, timeOut);
         if (!ok) break; // no more lines
         _serverResponce = line;
-        DEBUG_PRINTLN(line);
+        EMAIL_SENDER_DEBUG_PRINTLN(line);
         if (line.startsWith("250-")) continue; // still 250- lines
         if (line.startsWith("250 ")) break;    // last 250 <space> line
         // Different response: stop here and keep it in _serverResponce
@@ -370,7 +379,7 @@ EMailSender::Response EMailSender::send(char* tos[], byte sizeOfTo,  byte sizeOf
 
 
 EMailSender::Response EMailSender::send(String to, EMailMessage &email, Attachments attachments){
-	  DEBUG_PRINT(F("ONLY ONE RECIPIENT"));
+	  EMAIL_SENDER_DEBUG_PRINT(F("ONLY ONE RECIPIENT"));
 
 	const char* arrEmail[] =  {to.c_str()};
 	return send(arrEmail, 1, email, attachments);
@@ -389,14 +398,14 @@ EMailSender::Response EMailSender::send(String tos[], byte sizeOfTo,  byte sizeO
 }
 
 EMailSender::Response EMailSender::send(const char* to, EMailMessage &email, Attachments attachments){
-	  DEBUG_PRINT(F("ONLY ONE RECIPIENT"));
+	  EMAIL_SENDER_DEBUG_PRINT(F("ONLY ONE RECIPIENT"));
 
 	const char* arrEmail[] =  {to};
 	return send(arrEmail, 1, email, attachments);
 }
 
 EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo, EMailMessage &email, Attachments attachments) {
-	DEBUG_PRINTLN(F("miltiple destination and attachments"));
+	EMAIL_SENDER_DEBUG_PRINTLN(F("miltiple destination and attachments"));
 	return send(to, sizeOfTo, 0, email, attachments);
 }
 
@@ -425,8 +434,8 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
     EMailSender::Response response;
 
     // Debug: print server and port
-    DEBUG_PRINTLN(this->smtp_server);
-    DEBUG_PRINTLN(this->smtp_port);
+    EMAIL_SENDER_DEBUG_PRINTLN(this->smtp_server);
+    EMAIL_SENDER_DEBUG_PRINTLN(this->smtp_port);
 
     // Select active client to use for SMTP dialogue
     Client* activeClient = nullptr;
@@ -456,7 +465,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
         }
         String commandHELO = this->useEHLO ? "EHLO" : "HELO";
         String helo = commandHELO + " "+String(publicIPDescriptor)+" ";
-        DEBUG_PRINTLN(helo);
+        EMAIL_SENDER_DEBUG_PRINTLN(helo);
         openslab_sslclient.println(helo);
         if (this->useEHLO) {
             response = awaitSMTPResponseDrain(openslab_sslclient, "250", "Identification error");
@@ -480,7 +489,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
         if (useSTARTTLS) {
 #if defined(EMAIL_ENABLE_INTERNAL_SSLCLIENT)
             // Usa sslclient::SSLClient per STARTTLS sulla porta 587
-            DEBUG_PRINTLN(F("Using SSLClient with STARTTLS for port 587"));
+            EMAIL_SENDER_DEBUG_PRINTLN(F("Using SSLClient with STARTTLS for port 587"));
 
             static WiFiClient baseClient;
             static sslclient::SSLClient sslClient(baseClient);
@@ -491,8 +500,8 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
             if (!connected) {
                 IPAddress ip;
                 if (WiFi.hostByName(this->smtp_server, ip)) {
-                    DEBUG_PRINT(F("Resolved IP: "));
-                    DEBUG_PRINTLN(ip);
+                    EMAIL_SENDER_DEBUG_PRINT(F("Resolved IP: "));
+                    EMAIL_SENDER_DEBUG_PRINTLN(ip);
                     connected = baseClient.connect(ip, this->smtp_port);
                 }
             }
@@ -516,7 +525,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
             // Invia EHLO
             String commandHELO = this->useEHLO ? "EHLO" : "HELO";
             String helo = commandHELO + " "+String(publicIPDescriptor)+" ";
-            DEBUG_PRINTLN(helo);
+            EMAIL_SENDER_DEBUG_PRINTLN(helo);
             baseClient.println(helo);
 
             if (this->useEHLO) {
@@ -531,27 +540,35 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
             }
 
             // Invia comando STARTTLS
-            DEBUG_PRINTLN(F("Sending STARTTLS command"));
+            EMAIL_SENDER_DEBUG_PRINTLN(F("Sending STARTTLS command"));
             baseClient.println(F("STARTTLS"));
             response = awaitSMTPResponse(baseClient, "220", "STARTTLS not supported");
             if (!response.status) {
-                DEBUG_PRINTLN(F("STARTTLS command failed"));
+                EMAIL_SENDER_DEBUG_PRINTLN(F("STARTTLS command failed"));
                 baseClient.flush();
                 baseClient.stop();
                 return response;
             }
 
-            DEBUG_PRINTLN(F("STARTTLS accepted, upgrading connection with SSLClient..."));
+            EMAIL_SENDER_DEBUG_PRINTLN(F("STARTTLS accepted, upgrading connection with SSLClient..."));
 
             // Usa il metodo startTLS di SSLClient per fare l'upgrade della connessione
             sslClient.startTLS(this->smtp_server, this->smtp_port);
 
-            DEBUG_PRINTLN(F("SSL upgrade completed"));
+            EMAIL_SENDER_DEBUG_PRINTLN(F("SSL upgrade completed"));
+
+            // Attendi che la connessione SSL sia completamente stabilita
+            delay(100);
+
+            // Svuota eventuali dati residui nel buffer
+            while (sslClient.available() > 0) {
+                sslClient.read();
+            }
 
             // Ora usa sslClient per il resto della comunicazione
             activeClient = &sslClient;
 #else
-            DEBUG_PRINTLN(F("ERROR: STARTTLS requested but EMAIL_ENABLE_INTERNAL_SSLCLIENT not defined"));
+            EMAIL_SENDER_DEBUG_PRINTLN(F("ERROR: STARTTLS requested but EMAIL_ENABLE_INTERNAL_SSLCLIENT not defined"));
             response.desc = F("STARTTLS not available - enable EMAIL_ENABLE_INTERNAL_SSLCLIENT");
             response.code = F("2");
             response.status = false;
@@ -564,8 +581,8 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
             if (!connected) {
                 IPAddress ip;
                 if (WiFi.hostByName(this->smtp_server, ip)) {
-                    DEBUG_PRINT(F("Resolved IP: "));
-                    DEBUG_PRINTLN(ip);
+                    EMAIL_SENDER_DEBUG_PRINT(F("Resolved IP: "));
+                    EMAIL_SENDER_DEBUG_PRINTLN(ip);
                     connected = localClient.connect(ip, this->smtp_port);
                 }
             }
@@ -588,7 +605,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 
             String commandHELO = this->useEHLO ? "EHLO" : "HELO";
             String helo = commandHELO + " "+String(publicIPDescriptor)+" ";
-            DEBUG_PRINTLN(helo);
+            EMAIL_SENDER_DEBUG_PRINTLN(helo);
             localClient.println(helo);
 
             if (this->useEHLO) {
@@ -624,7 +641,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 
         String commandHELO = this->useEHLO ? "EHLO" : "HELO";
         String helo = commandHELO + " "+String(publicIPDescriptor)+" ";
-        DEBUG_PRINTLN(helo);
+        EMAIL_SENDER_DEBUG_PRINTLN(helo);
         localClient.println(helo);
 
         if (this->useEHLO) {
@@ -693,13 +710,13 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
             }
 
             String auth = "AUTH PLAIN "+String(encode64_f(logPass, size));
-            DEBUG_PRINTLN(auth);
+            EMAIL_SENDER_DEBUG_PRINTLN(auth);
             activeClient->println(auth);
             free(logPass);
         }
 #if defined(ESP32)
         else if (this->isCramMD5Login == true) {
-            DEBUG_PRINTLN(F("AUTH CRAM-MD5"));
+            EMAIL_SENDER_DEBUG_PRINTLN(F("AUTH CRAM-MD5"));
             activeClient->println(F("AUTH CRAM-MD5"));
             response = awaitSMTPResponse(*activeClient,"334","No digest error");
             if (!response.status) { activeClient->flush(); activeClient->stop(); return response; };
@@ -707,7 +724,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 
             size_t b64l = _serverResponce.length()-1;
             const unsigned char * b64 = (const unsigned char *)_serverResponce.c_str();
-            DEBUG_PRINTLN("B64digest="+String((char *)b64) + " Len=" + String((int)b64l));
+            EMAIL_SENDER_DEBUG_PRINTLN("B64digest="+String((char *)b64) + " Len=" + String((int)b64l));
 
             unsigned char digest[256];
             size_t len;
@@ -733,34 +750,34 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
                 char h[16+1] = "0123456789abcdef";
                 rsp += String(h[ (c >> 4) &0xF]) +  String(h[ (c >> 0) &0xF]);
             };
-            DEBUG_PRINTLN(encode64((char*)rsp.c_str()));
+            EMAIL_SENDER_DEBUG_PRINTLN(encode64((char*)rsp.c_str()));
             activeClient->println(encode64((char*)rsp.c_str()));
         }
 #endif
         else{
-            DEBUG_PRINTLN(F("AUTH LOGIN:"));
+            EMAIL_SENDER_DEBUG_PRINTLN(F("AUTH LOGIN:"));
             activeClient->println(F("AUTH LOGIN"));
             // Attendi richiesta username
             response = awaitSMTPResponse(*activeClient, "334", "AUTH LOGIN: no username challenge");
             if (!response.status) { activeClient->flush(); activeClient->stop(); return response; }
 
             // Invia username in base64 e attendi richiesta password
-            DEBUG_PRINTLN(encode64(this->email_login));
+            EMAIL_SENDER_DEBUG_PRINTLN(encode64(this->email_login));
             activeClient->println(encode64(this->email_login));
             response = awaitSMTPResponse(*activeClient, "334", "AUTH LOGIN: no password challenge");
             if (!response.status) { activeClient->flush(); activeClient->stop(); return response; }
 
             // Invia password in base64, la conferma arriva con 235
-            DEBUG_PRINTLN(encode64(this->email_password));
+            EMAIL_SENDER_DEBUG_PRINTLN(encode64(this->email_password));
             activeClient->println(encode64(this->email_password));
         }
         response = awaitSMTPResponse(*activeClient, "235", "SMTP AUTH error");
         if (!response.status) { activeClient->flush(); activeClient->stop(); return response; }
     }
 
-    DEBUG_PRINT(F("MAIL FROM: <"));
-    DEBUG_PRINT(this->email_from);
-    DEBUG_PRINTLN(F(">"));
+    EMAIL_SENDER_DEBUG_PRINT(F("MAIL FROM: <"));
+    EMAIL_SENDER_DEBUG_PRINT(this->email_from);
+    EMAIL_SENDER_DEBUG_PRINTLN(F(">"));
 
     activeClient->print(F("MAIL FROM: <"));
     activeClient->print(this->email_from);
@@ -769,16 +786,16 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 
     int cont;
     for (cont=0;cont<(sizeOfTo+sizeOfCc+sizeOfCCn);cont++){
-        DEBUG_PRINT(F("RCPT TO: <"));
-        DEBUG_PRINT(to[cont]);
-        DEBUG_PRINTLN(F(">"));
+        EMAIL_SENDER_DEBUG_PRINT(F("RCPT TO: <"));
+        EMAIL_SENDER_DEBUG_PRINT(to[cont]);
+        EMAIL_SENDER_DEBUG_PRINTLN(F(">"));
         activeClient->print(F("RCPT TO: <"));
         activeClient->print(to[cont]);
         activeClient->println(F(">"));
         awaitSMTPResponse(*activeClient);
     }
 
-    DEBUG_PRINTLN(F("DATA:"));
+    EMAIL_SENDER_DEBUG_PRINTLN(F("DATA:"));
     activeClient->println(F("DATA"));
 
     response = awaitSMTPResponse(*activeClient, "354", "SMTP DATA error");
@@ -891,7 +908,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 //  if ((sizeof(attachs) / sizeof(attachs[0]))>0){
   if (sizeof(attachments)>0 && attachments.number>0){
 
-	  DEBUG_PRINT(F("Array: "));
+	  EMAIL_SENDER_DEBUG_PRINT(F("Array: "));
 //	  for (int i = 0; i<(sizeof(attachs) / sizeof(attachs[0])); i++){
 	  for (int i = 0; i<attachments.number; i++){
 		  uint8_t tBuf[64];
@@ -927,14 +944,14 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 			  return response;
 		  }
 
-		  DEBUG_PRINTLN(attachments.fileDescriptor[i].filename);
-		  DEBUG_PRINTLN(F("--frontier"));
+		  EMAIL_SENDER_DEBUG_PRINTLN(attachments.fileDescriptor[i].filename);
+		  EMAIL_SENDER_DEBUG_PRINTLN(F("--frontier"));
 		  client.println(F("--frontier"));
-		  DEBUG_PRINTLN(F("Content-Type: "));
+		  EMAIL_SENDER_DEBUG_PRINTLN(F("Content-Type: "));
 		  client.print(F("Content-Type: "));
-		  DEBUG_PRINTLN(attachments.fileDescriptor[i].mime);
+		  EMAIL_SENDER_DEBUG_PRINTLN(attachments.fileDescriptor[i].mime);
 		  client.print(attachments.fileDescriptor[i].mime);
-		  DEBUG_PRINTLN(F("; charset=\"UTF-8\""));
+		  EMAIL_SENDER_DEBUG_PRINTLN(F("; charset=\"UTF-8\""));
 		  client.println(F("; charset=\"UTF-8\""));
 
 		  if (attachments.fileDescriptor[i].encode64){
@@ -944,11 +961,11 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 		  client.print(F("Content-Disposition: attachment; filename="));
 		  client.print(attachments.fileDescriptor[i].filename);
 		  client.println(F("\n"));
-		  DEBUG_PRINT(F("Readed filename: "));
-		  DEBUG_PRINTLN(attachments.fileDescriptor[i].filename);
+		  EMAIL_SENDER_DEBUG_PRINT(F("Readed filename: "));
+		  EMAIL_SENDER_DEBUG_PRINTLN(attachments.fileDescriptor[i].filename);
 
-//		  DEBUG_PRINT(F("Check if exist: "));
-//		  DEBUG_PRINTLN(INTERNAL_STORAGE_CLASS.exists(attachments.fileDescriptor[i].url.c_str()));
+//		  EMAIL_SENDER_DEBUG_PRINT(F("Check if exist: "));
+//		  EMAIL_SENDER_DEBUG_PRINTLN(INTERNAL_STORAGE_CLASS.exists(attachments.fileDescriptor[i].url.c_str()));
 
 		  int clientCount = 0;
 
@@ -959,7 +976,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 				attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_FFAT){
 	#ifdef OPEN_CLOSE_INTERNAL
 				if (!INTERNAL_STORAGE_CLASS.exists(attachments.fileDescriptor[i].url.c_str())){
-				    DEBUG_PRINTLN(F("Begin internal storage!"));
+				    EMAIL_SENDER_DEBUG_PRINTLN(F("Begin internal storage!"));
 
 					#if (INTERNAL_STORAGE == STORAGE_SPIFM)
 					Adafruit_FlashTransport_SPI flashTransport(SPIFM_CS_PIN, SPI); // Set CS and SPI interface
@@ -992,24 +1009,24 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 					} // Close INTERNAL_STORAGE_CLASS.begin
 
 					spiffsActive = true;
-					DEBUG_PRINTLN("SPIFFS BEGIN, ACTIVE");
+					EMAIL_SENDER_DEBUG_PRINTLN("SPIFFS BEGIN, ACTIVE");
 				} // Close INTERNAL_STORAGE_CLASS.exists
 
 	#endif
 
-				DEBUG_PRINT(F("Try to open "));
-				DEBUG_PRINTLN(attachments.fileDescriptor[i].url);
+				EMAIL_SENDER_DEBUG_PRINT(F("Try to open "));
+				EMAIL_SENDER_DEBUG_PRINTLN(attachments.fileDescriptor[i].url);
 				EMAIL_FILE myFile = INTERNAL_STORAGE_CLASS.open(attachments.fileDescriptor[i].url, EMAIL_FILE_READ);
 				  if(myFile) {
-					  DEBUG_PRINT(F("Filename -> "));
-					  DEBUG_PRINTLN(myFile.name());
+					  EMAIL_SENDER_DEBUG_PRINT(F("Filename -> "));
+					  EMAIL_SENDER_DEBUG_PRINTLN(myFile.name());
 					  if (attachments.fileDescriptor[i].encode64){
 						  encode(&myFile, &client);
 					  }
 					  else{
 						while(myFile.available()) {
 						clientCount = myFile.read(tBuf,64);
-						DEBUG_PRINTLN(clientCount);
+						EMAIL_SENDER_DEBUG_PRINTLN(clientCount);
 						  client.write((byte*)tBuf,clientCount);
 						}
 					  }
@@ -1033,7 +1050,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 #ifdef STORAGE_EXTERNAL_ENABLED
 			if (attachments.fileDescriptor[i].storageType==EMAIL_STORAGE_TYPE_SD){
 #ifdef OPEN_CLOSE_SD
-				 DEBUG_PRINTLN(F("SD Check"));
+				 EMAIL_SENDER_DEBUG_PRINTLN(F("SD Check"));
 				 if (!EXTERNAL_STORAGE_CLASS.exists(attachments.fileDescriptor[i].url.c_str())){
 #if EXTERNAL_STORAGE == STORAGE_SD || EXTERNAL_STORAGE == STORAGE_SDFAT2 || EXTERNAL_STORAGE == STORAGE_SDFAT_RP2040_ESP8266
 					if(!EXTERNAL_STORAGE_CLASS.begin(SD_CS_PIN)){
@@ -1062,17 +1079,17 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 				 } // Close EXTERNAL_STORAGE_CLASS.exists
 #endif
 
-			    DEBUG_PRINTLN(F("Open file: "));
+			    EMAIL_SENDER_DEBUG_PRINTLN(F("Open file: "));
 			EMAIL_FILE_EX myFile = EXTERNAL_STORAGE_CLASS.open(attachments.fileDescriptor[i].url.c_str());
 
 			  if(myFile) {
 				  myFile.seek(0);
-				  DEBUG_PRINTLN(F("OK"));
+				  EMAIL_SENDER_DEBUG_PRINTLN(F("OK"));
 				  if (attachments.fileDescriptor[i].encode64){
-					  DEBUG_PRINTLN(F("BASE 64"));
+					  EMAIL_SENDER_DEBUG_PRINTLN(F("BASE 64"));
 					  encode(&myFile, &client);
 				  }else{
-					  DEBUG_PRINTLN(F("NORMAL"));
+					  EMAIL_SENDER_DEBUG_PRINTLN(F("NORMAL"));
 					while(myFile.available()) {
 						clientCount = myFile.read(tBuf,64);
 						client.write((byte*)tBuf,clientCount);
@@ -1111,13 +1128,13 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 #ifdef STORAGE_EXTERNAL_ENABLED
 	  #ifdef OPEN_CLOSE_SD
 		  if (sdActive){
-			  DEBUG_PRINTLN(F("SD end"));
+			  EMAIL_SENDER_DEBUG_PRINTLN(F("SD end"));
 		#ifndef ARDUINO_ESP8266_RELEASE_2_4_2
 			#if EXTERNAL_STORAGE != STORAGE_SDFAT_RP2040_ESP8266
 			  EXTERNAL_STORAGE_CLASS.end();
 			#endif
 		#endif
-			  DEBUG_PRINTLN(F("SD end 2"));
+			  EMAIL_SENDER_DEBUG_PRINTLN(F("SD end 2"));
 		  }
 	#endif
 #endif
@@ -1127,7 +1144,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 		#if INTERNAL_STORAGE != STORAGE_SPIFM
 		  if (spiffsActive){
 			  INTERNAL_STORAGE_CLASS.end();
-			  DEBUG_PRINTLN(F("SPIFFS END"));
+			  EMAIL_SENDER_DEBUG_PRINTLN(F("SPIFFS END"));
 		  }
 	#endif
 #endif
@@ -1137,7 +1154,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 	  } // Close attachement enable
 
 #endif
-  DEBUG_PRINTLN(F("Message end"));
+  EMAIL_SENDER_DEBUG_PRINTLN(F("Message end"));
   client.println(F("."));
 
   response = awaitSMTPResponse(client, "250", "Sending message error");

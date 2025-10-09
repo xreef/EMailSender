@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266, stm32 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 4.0.0
+ * VERSION: 4.0.1
  *
  * https://www.mischianti.org/
  *
@@ -39,8 +39,8 @@
 #include "Client.h"
 
 #if defined(EMAIL_ENABLE_INTERNAL_SSLCLIENT)
-// Uso un percorso relativo dalla directory principale della libreria
-#include "src/sslclient/SSLClient.h"
+// Uso un percorso relativo corretto dalla directory src/
+#include "sslclient/SSLClient.h"
 #endif
 
 
@@ -382,11 +382,11 @@
 
 // Setup debug printing macros.
 #ifdef EMAIL_SENDER_DEBUG
-	#define DEBUG_PRINT(...) { DEBUG_PRINTER.print(__VA_ARGS__); }
-	#define DEBUG_PRINTLN(...) { DEBUG_PRINTER.println(__VA_ARGS__); }
+	#define EMAIL_SENDER_DEBUG_PRINT(...) { EMAIL_SENDER_DEBUG_PRINTER.print(__VA_ARGS__); }
+	#define EMAIL_SENDER_DEBUG_PRINTLN(...) { EMAIL_SENDER_DEBUG_PRINTER.println(__VA_ARGS__); }
 #else
-	#define DEBUG_PRINT(...) {}
-	#define DEBUG_PRINTLN(...) {}
+	#define EMAIL_SENDER_DEBUG_PRINT(...) {}
+	#define EMAIL_SENDER_DEBUG_PRINTLN(...) {}
 #endif
 
 // Debug level for SSLClient

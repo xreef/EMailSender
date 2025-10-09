@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266, stm32 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 4.0.0
+ * VERSION: 4.0.1
  *
  * https://www.mischianti.org/
  *
@@ -50,7 +50,7 @@
 #define MANAGE_DATE_HEADER
 
 // Define where debug output will be printed.
-#define DEBUG_PRINTER Serial
+#define EMAIL_SENDER_DEBUG_PRINTER Serial
 
 #define STORAGE_NONE (0)
 // INTERNAL STORAGE
@@ -88,7 +88,7 @@
 // instead of relying solely on the native secure client (e.g., WiFiClientSecure for 465),
 // uncomment the following define. Enabling it increases flash and RAM usage
 // but provides STARTTLS support on non-secure base clients.
-//#define EMAIL_ENABLE_INTERNAL_SSLCLIENT
+// #define EMAIL_ENABLE_INTERNAL_SSLCLIENT
 
 // Enable integration with OPEnSLab-OSU SSLClient (BearSSL) per AVR/Ethernet o schede che ne hanno bisogno.
 // Usa questo backend solo se hai INSTALLATO la libreria esterna "SSLClient" (OPEnSLab-OSU).

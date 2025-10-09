@@ -4,6 +4,10 @@
 // Questo file contiene l'implementazione SSLClient per ESP32/ESP8266
 // Deve essere compilato SOLO se EMAIL_ENABLE_INTERNAL_SSLCLIENT è abilitato
 // Ultima modifica: forza rebuild per applicare le guard
+
+// Include EMailSenderKey.h per le definizioni delle macro
+#include "../EMailSenderKey.h"
+
 #if defined(EMAIL_ENABLE_INTERNAL_SSLCLIENT)
 
 #include "SSLClient.h"

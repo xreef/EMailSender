@@ -1,4 +1,4 @@
-# EMailSender Library v4.0.0
+# EMailSender Library v4.0.1
 
 ![EMailSender Logo](https://raw.githubusercontent.com/xreef/EMailSender/master/resources/EMailSenderLogo.jpg)
 
@@ -271,6 +271,10 @@ For boards with limited RAM (like Arduino Uno):
 - You MUST use App Passwords now
 - Regular account password will not work
 
+## Change log v4.x
+- 09/10/2025: v4.0.1 Fix path sslclient and code completition of Platformio 
+
+
 ## 📝 Changelog v4.0.0 - 08/10/2025
 
 ### New Features
@@ -303,7 +307,7 @@ Most code will work without changes. If using custom client configuration:
 - Update authentication methods if using advanced features
 - Test STARTTLS connections (port 587) for better security
 
-## Change log
+## Change log v3.x
 - 14/03/2024: v3.0.14 Support Arduino GIGA WiFi
 - 31/10/2023: v3.0.13 Fix wrong implementation of FORCE_DISABLE_SSL
 - 17/10/2023: v3.0.12 Fix warnigs of variable not used #43 thanks to @Patriboom @Andy2015
