@@ -879,7 +879,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 
     activeClient->print(F("Content-Type: "));
     activeClient->print(email.mime);
-    activeClient->println(F("; charset=utf-8"));
+    activeClient->println(F("; charset=\"UTF-8\""));
     activeClient->println(F("Content-Transfer-Encoding: 7bit"));
     activeClient->println();
     if (email.mime==F("text/html")){
