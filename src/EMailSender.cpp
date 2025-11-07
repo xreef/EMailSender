@@ -826,7 +826,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
             activeClient->print(F("<"));
             activeClient->print(to[cont]);
             activeClient->print(">");
-            if (cont!=sizeOfCc-1){ activeClient->print(","); }
+            if (cont!=sizeOfTo+sizeOfCc-1){ activeClient->print(","); }
         }
         activeClient->println();
     }
@@ -837,7 +837,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
             activeClient->print(F("<"));
             activeClient->print(to[cont]);
             activeClient->print(">");
-            if (cont!=sizeOfCCn-1){ activeClient->print(","); }
+            if (cont!=sizeOfTo+sizeOfCc+sizeOfCCn-1){ activeClient->print(","); }
         }
         activeClient->println();
     }
