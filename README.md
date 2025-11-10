@@ -1,8 +1,10 @@
-# EMailSender Library v4.0.1
+# EMailSender Library v4.1.0
 
 ![EMailSender Logo](https://raw.githubusercontent.com/xreef/EMailSender/master/resources/EMailSenderLogo.jpg)
 
 [![arduino-library-badge](https://www.ardu-badge.com/badge/EMailSender.svg?)](https://www.ardu-badge.com/EMailSender)
+[![](https://img.shields.io/badge/Platform-Arduino%20%7C%20ArduinoSAMD%20%7C%20ESP32%20%7C%20ESP8266%20%7C%20RP2040%20%7C%20STM32-green.svg)]()  
+[![](https://img.shields.io/badge/License-MIT-lightgrey.svg)](LICENSE.md)
 
 A comprehensive Arduino library for sending emails via SMTP with full support for attachments, multiple recipients, and secure connections (SSL/TLS and STARTTLS).
 
@@ -272,6 +274,7 @@ For boards with limited RAM (like Arduino Uno):
 - Regular account password will not work
 
 ## Change log v4.x
+- 12/10/2025: v4.1.0 Add Stream and File as attachement type 
 - 09/10/2025: v4.0.1 Fix path sslclient and code completition of Platformio 
 
 

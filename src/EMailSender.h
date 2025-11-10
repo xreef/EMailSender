@@ -2,7 +2,7 @@
  * EMail Sender Arduino, esp8266, stm32 and esp32 library to send email
  *
  * AUTHOR:  Renzo Mischianti
- * VERSION: 4.0.1
+ * VERSION: 4.1.0
  *
  * https://www.mischianti.org/
  *
@@ -417,7 +417,9 @@ public:
 		EMAIL_STORAGE_TYPE_LITTLE_FS,
 		EMAIL_STORAGE_TYPE_FFAT,
 		EMAIL_STORAGE_TYPE_SPIFM,
-		EMAIL_STORAGE_TYPE_SD
+		EMAIL_STORAGE_TYPE_SD,
+		EMAIL_STORAGE_TYPE_STREAM,  // Support for Stream attachments
+		EMAIL_STORAGE_TYPE_STRING   // Support for String attachments (direct)
 	};
 
 #define MIME_TEXT_HTML F("text/html")
@@ -438,6 +440,9 @@ public:
 		bool encode64 = false;
 		String filename;
 		String url;
+		Stream* stream = nullptr;     // Pointer to Stream for EMAIL_STORAGE_TYPE_STREAM
+		size_t streamSize = 0;        // Size of stream data (required for Stream attachments)
+		String content;               // Content for EMAIL_STORAGE_TYPE_STRING (direct String attachment)
 	} FileDescriptior;
 
 	typedef struct {

@@ -346,6 +346,35 @@ void encodeblock(unsigned char in[3],unsigned char out[4],int len) {
 	#endif
 #endif
 
+// NEW: Base64 encoding function for Stream attachments
+void encode(Stream *stream, Client *client) {
+	unsigned char in[3], out[4];
+	int i, len, blocksout = 0;
+
+	while (stream->available() > 0) {
+		len = 0;
+		for (i = 0; i < 3; i++) {
+			if (stream->available() > 0) {
+				in[i] = (unsigned char)stream->read();
+				len++;
+			} else {
+				in[i] = 0;
+			}
+		}
+		if (len) {
+			encodeblock(in, out, len);
+			client->write(out, 4);
+			blocksout++;
+		}
+		if (blocksout >= 19 || stream->available() == 0) {
+			if (blocksout) {
+				client->print("\r\n");
+			}
+			blocksout = 0;
+		}
+	}
+}
+
 const char** toCharArray(String arr[], int num) {
     // If we ever alloc with new with have to delete
     const char** buffer = new const char*[num];
@@ -913,7 +942,9 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 	  for (int i = 0; i<attachments.number; i++){
 		  uint8_t tBuf[64];
 
-		  if (attachments.fileDescriptor[i].url.length()==0){
+		  // Per gli Stream attachment, l'url non è necessario
+		  if (attachments.fileDescriptor[i].storageType != EMAIL_STORAGE_TYPE_STREAM &&
+		      attachments.fileDescriptor[i].url.length()==0){
 			  EMailSender::Response response;
 			  response.code = F("400");
 			  response.desc = "Error no filename specified for the file "+attachments.fileDescriptor[i].filename;
@@ -1122,6 +1153,105 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 	}
 #endif
 
+// NEW: Handle Stream attachments
+		if (attachments.fileDescriptor[i].storageType == EMAIL_STORAGE_TYPE_STREAM) {
+			EMAIL_SENDER_DEBUG_PRINTLN(F("Stream attachment"));
+
+			if (attachments.fileDescriptor[i].stream == nullptr) {
+				response.code = F("500");
+				response.desc = F("Stream pointer is null for EMAIL_STORAGE_TYPE_STREAM");
+				response.status = false;
+				client.flush();
+				client.stop();
+				return response;
+			}
+
+			if (attachments.fileDescriptor[i].streamSize == 0) {
+				response.code = F("500");
+				response.desc = F("Stream size must be specified for EMAIL_STORAGE_TYPE_STREAM");
+				response.status = false;
+				client.flush();
+				client.stop();
+				return response;
+			}
+
+			Stream* streamPtr = attachments.fileDescriptor[i].stream;
+			size_t totalSize = attachments.fileDescriptor[i].streamSize;
+			size_t bytesRead = 0;
+
+			EMAIL_SENDER_DEBUG_PRINT(F("Stream size: "));
+			EMAIL_SENDER_DEBUG_PRINTLN(totalSize);
+
+			if (attachments.fileDescriptor[i].encode64) {
+				EMAIL_SENDER_DEBUG_PRINTLN(F("BASE 64 encoding from Stream"));
+				encode(streamPtr, &client);
+			} else {
+				EMAIL_SENDER_DEBUG_PRINTLN(F("NORMAL read from Stream"));
+				while (bytesRead < totalSize && streamPtr->available()) {
+					size_t toRead = min((size_t)64, totalSize - bytesRead);
+					clientCount = streamPtr->readBytes(tBuf, toRead);
+					if (clientCount > 0) {
+						client.write((byte*)tBuf, clientCount);
+						bytesRead += clientCount;
+					} else {
+						break;
+					}
+				}
+
+				if (bytesRead < totalSize) {
+					EMAIL_SENDER_DEBUG_PRINT(F("Warning: Read "));
+					EMAIL_SENDER_DEBUG_PRINT(bytesRead);
+					EMAIL_SENDER_DEBUG_PRINT(F(" bytes, expected "));
+					EMAIL_SENDER_DEBUG_PRINTLN(totalSize);
+				}
+			}
+
+			client.println();
+			EMAIL_SENDER_DEBUG_PRINTLN(F("Stream attachment sent"));
+		} // Close storageType==EMAIL_STORAGE_TYPE_STREAM
+
+// NEW: Handle String attachments (direct)
+		if (attachments.fileDescriptor[i].storageType == EMAIL_STORAGE_TYPE_STRING) {
+			EMAIL_SENDER_DEBUG_PRINTLN(F("String attachment"));
+
+			if (attachments.fileDescriptor[i].content.length() == 0) {
+				response.code = F("500");
+				response.desc = F("Content string is empty for EMAIL_STORAGE_TYPE_STRING");
+				response.status = false;
+				client.flush();
+				client.stop();
+				return response;
+			}
+
+			String& stringContent = attachments.fileDescriptor[i].content;
+			size_t totalSize = stringContent.length();
+
+			EMAIL_SENDER_DEBUG_PRINT(F("String size: "));
+			EMAIL_SENDER_DEBUG_PRINTLN(totalSize);
+
+			if (attachments.fileDescriptor[i].encode64) {
+				EMAIL_SENDER_DEBUG_PRINTLN(F("BASE 64 encoding from String"));
+				// For base64 encoding, we need to send byte by byte
+				for (size_t pos = 0; pos < totalSize; pos += 64) {
+					size_t chunkSize = min((size_t)64, totalSize - pos);
+					for (size_t j = 0; j < chunkSize; j++) {
+						tBuf[j] = stringContent.charAt(pos + j);
+					}
+					// Encode and send chunk
+					client.write(encode64((byte*)tBuf, chunkSize).c_str());
+				}
+			} else {
+				EMAIL_SENDER_DEBUG_PRINTLN(F("NORMAL write from String"));
+				// Send string content directly in chunks
+				for (size_t pos = 0; pos < totalSize; pos += 512) {
+					size_t chunkSize = min((size_t)512, totalSize - pos);
+					client.write(stringContent.substring(pos, pos + chunkSize).c_str());
+				}
+			}
+
+			client.println();
+			EMAIL_SENDER_DEBUG_PRINTLN(F("String attachment sent"));
+		} // Close storageType==EMAIL_STORAGE_TYPE_STRING
 	  } // Close attachment cycle
 	  client.println();
 	  client.println(F("--frontier--"));
@@ -1136,7 +1266,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 		#endif
 			  EMAIL_SENDER_DEBUG_PRINTLN(F("SD end 2"));
 		  }
-	#endif
+	  #endif
 #endif
 
 #ifdef STORAGE_INTERNAL_ENABLED
@@ -1146,12 +1276,11 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 			  INTERNAL_STORAGE_CLASS.end();
 			  EMAIL_SENDER_DEBUG_PRINTLN(F("SPIFFS END"));
 		  }
+		#endif
 	#endif
 #endif
 
-
-#endif
-	  } // Close attachement enable
+  } // Close attachement enable
 
 #endif
   EMAIL_SENDER_DEBUG_PRINTLN(F("Message end"));
