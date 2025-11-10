@@ -136,6 +136,7 @@ Complete tutorials and articles available on [mischianti.org](https://www.mischi
 - **LittleFS** (ESP32, ESP8266, RP2040)
 - **FFAT** (ESP32)
 - **SPIFM** (SPI Flash with Adafruit_SPIFlash)
+- **Generic stream and string attachments option**
 
 ### External Storage (SD/microSD Cards)
 - **SD** (Standard SD library)
@@ -154,7 +155,7 @@ Complete tutorials and articles available on [mischianti.org](https://www.mischi
 Add to your `platformio.ini`:
 ```ini
 lib_deps = 
-    xreef/EMailSender@^4.0.0
+    xreef/EMailSender@^4.1.0
 ```
 
 ### Manual Installation
@@ -274,7 +275,9 @@ For boards with limited RAM (like Arduino Uno):
 - Regular account password will not work
 
 ## Change log v4.x
-- 12/10/2025: v4.1.0 Add Stream and File as attachement type 
+- 10/11/2025: v4.1.0
+  - Add Stream and File as attachement type
+  - Bug fix for size and encoding
 - 09/10/2025: v4.0.1 Fix path sslclient and code completition of Platformio 
 
 
