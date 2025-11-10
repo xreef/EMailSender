@@ -826,7 +826,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
             activeClient->print(F("<"));
             activeClient->print(to[cont]);
             activeClient->print(">");
-            if (cont!=sizeOfCc-1){ activeClient->print(","); }
+            if (cont!=sizeOfTo+sizeOfCc-1){ activeClient->print(","); }
         }
         activeClient->println();
     }
@@ -837,7 +837,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
             activeClient->print(F("<"));
             activeClient->print(to[cont]);
             activeClient->print(">");
-            if (cont!=sizeOfCCn-1){ activeClient->print(","); }
+            if (cont!=sizeOfTo+sizeOfCc+sizeOfCCn-1){ activeClient->print(","); }
         }
         activeClient->println();
     }
@@ -879,7 +879,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 
     activeClient->print(F("Content-Type: "));
     activeClient->print(email.mime);
-    activeClient->println(F("; charset=\"UTF-8\""));
+    activeClient->println(F("; charset=utf-8"));
     activeClient->println(F("Content-Transfer-Encoding: 7bit"));
     activeClient->println();
     if (email.mime==F("text/html")){
@@ -951,8 +951,8 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 		  client.print(F("Content-Type: "));
 		  EMAIL_SENDER_DEBUG_PRINTLN(attachments.fileDescriptor[i].mime);
 		  client.print(attachments.fileDescriptor[i].mime);
-		  EMAIL_SENDER_DEBUG_PRINTLN(F("; charset=\"UTF-8\""));
-		  client.println(F("; charset=\"UTF-8\""));
+		  EMAIL_SENDER_DEBUG_PRINTLN(F("; charset=utf-8"));
+		  client.println(F("; charset=utf-8"));
 
 		  if (attachments.fileDescriptor[i].encode64){
 			  client.println(F("Content-Transfer-Encoding: base64"));
