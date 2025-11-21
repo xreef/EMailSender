@@ -1238,14 +1238,16 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 						tBuf[j] = stringContent.charAt(pos + j);
 					}
 					// Encode and send chunk
-					client.write(encode64((byte*)tBuf, chunkSize).c_str());
+					const char* encoded = encode64_f((char*)tBuf, chunkSize);
+					client.print(encoded);
 				}
 			} else {
 				EMAIL_SENDER_DEBUG_PRINTLN(F("NORMAL write from String"));
 				// Send string content directly in chunks
 				for (size_t pos = 0; pos < totalSize; pos += 512) {
 					size_t chunkSize = min((size_t)512, totalSize - pos);
-					client.write(stringContent.substring(pos, pos + chunkSize).c_str());
+					String chunk = stringContent.substring(pos, pos + chunkSize);
+					client.print(chunk);
 				}
 			}
 
