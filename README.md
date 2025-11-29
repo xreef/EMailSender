@@ -20,23 +20,24 @@ Complete tutorials and articles available on [mischianti.org](https://www.mischi
 
 ### General Documentation
 - 🌐 **[EMailSender Library Home](https://www.mischianti.org/category/my-libraries/emailsender-send-email-with-attachments/)** - Main library page with all articles
-- 📖 **[Library Forum & Support](https://www.mischianti.org/forums/)** - Community support and discussions
+- 📖 🇺🇸 **[Library Forum & Support](https://mischianti.org/forums/forum/mischiantis-libraries/emailsender-send-email-with-attachments/)** - Community support and discussions
+- 📖 🇮🇹 **[Forum e supporto alla libreria](https://mischianti.org/it/forums/forum/le-librerie-di-mischianti/emailsender-invio-di-email-con-allegati/)** - Community support and discussions
 
 ### Platform-Specific Guides
 
-#### ESP32 Tutorials
+#### ESP32 & ESP8266 Tutorials
+- 📧 **[How to Send Emails with Attachments on ESP32/ESP8266 (EMailSender v4.0.0 & STARTTLS)](https://mischianti.org/how-to-send-emails-with-attachments-on-esp32-esp8266-emailsender-v4-0-0-starttls/)** - Covers the latest v4.0.0 library update. Focuses on STARTTLS (port 587) support, which is required for modern Gmail. Includes wiring for SD cards.
 - 📧 **[ESP32: Send email with attachments (Gmail, Yahoo, Outlook)](https://www.mischianti.org/2020/05/16/how-to-send-emails-with-attachments-with-esp32-gmail-and-smtp-server/)** - Complete guide for ESP32
 - 🔐 **[ESP32: Secure email with SSL/TLS and attachments](https://www.mischianti.org/2020/05/20/esp32-send-secure-ssl-tls-emails-with-gmail-and-attachments/)** - SSL/TLS configuration
 - 📎 **[ESP32: Manage SPIFFS and send attachments](https://www.mischianti.org/2020/05/23/esp32-manage-filesystem-spiffs-and-send-email-attachments/)** - SPIFFS file attachments
 - 💾 **[ESP32: LittleFS filesystem and email attachments](https://www.mischianti.org/2021/04/12/esp32-integrated-littlefs-filesystem-email-attachments/)** - LittleFS integration
 - 📁 **[ESP32: FFAT filesystem and large file attachments](https://www.mischianti.org/2021/04/19/esp32-integrated-ffat-fat-filesystem-email-attachments/)** - FFAT for large files
-
-#### ESP8266 Tutorials
 - 📧 **[ESP8266: Send email with attachments](https://www.mischianti.org/2020/05/30/how-to-send-emails-with-attachments-with-esp8266-gmail-and-smtp/)** - Complete guide for ESP8266
 - 📎 **[ESP8266: Manage SPIFFS and send attachments](https://www.mischianti.org/2020/06/03/esp8266-manage-filesystem-spiffs-and-send-email-attachments/)** - SPIFFS integration
 - 💾 **[ESP8266: LittleFS filesystem and email attachments](https://www.mischianti.org/2021/04/26/esp8266-integrated-littlefs-filesystem-email-attachments/)** - LittleFS support
 
 #### Arduino Tutorials
+- 📧 **[Arduino UNO/Mega and Ethernet: Sending Emails with Attachments (EMailSender v4.0.0 Library)](https://mischianti.org/arduino-uno-mega-and-ethernet-sending-emails-with-attachments-emailsender-v4-0-0-library/)** - Specifically for boards with limited SRAM (UNO/Mega). Uses Ethernet shields (W5100/W5500). Addresses memory optimization techniques for v4.0.0.
 - 📧 **[Arduino: Send email with attachments (Ethernet shield)](https://www.mischianti.org/2020/06/09/how-to-send-emails-with-attachments-with-arduino-and-enc28j60/)** - Arduino with ENC28J60
 - 🔐 **[Arduino: Secure SSL/TLS email with Ethernet](https://www.mischianti.org/2020/06/13/how-to-send-secure-ssl-tls-emails-with-arduino-and-enc28j60/)** - SSL configuration for Arduino
 - 📎 **[Arduino: SD card attachments with Ethernet](https://www.mischianti.org/2020/06/16/arduino-ethernet-enc28j60-send-email-with-sd-attachments/)** - SD card integration
@@ -275,6 +276,10 @@ For boards with limited RAM (like Arduino Uno):
 - Regular account password will not work
 
 ## Change log v4.x
+- 29/11/2025: v4.1.2
+  - Fix warning destructor
+  - Add Arduino Giga example
+
 - 10/11/2025: v4.1.1
   - Minor enhancements: add support for Stream and String attachments improvements
   - Bug fixes: edge-case encoding issues and small fixes in attachment handling

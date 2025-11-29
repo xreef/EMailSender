@@ -100,6 +100,9 @@ public:
                         const size_t max_sessions = 1,
                         const DebugLevel debug = SSL_WARN);
 
+    // Add a virtual destructor to avoid undefined behavior when deleting via base pointer
+    virtual ~SSLClient() = default;
+
     //========================================
     //= Functions implemented in SSLClient.cpp
     //========================================
@@ -491,3 +494,4 @@ private:
 };
 
 #endif /** SSLClient_H_ */
+

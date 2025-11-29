@@ -17,7 +17,7 @@ namespace sslclient {
 class SSLClient : public Client {
 public:
     SSLClient(Client &client, CertStoreBase *certStore = nullptr);
-    ~SSLClient();
+    virtual ~SSLClient();
     int connect(const char *host, uint16_t port) override;
     int connect(IPAddress ip, uint16_t port) override;
     void stop() override;
