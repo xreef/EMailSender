@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2016 Thomas Pornin <pornin@bolet.org>
  *
@@ -175,3 +178,6 @@ const br_sslrec_out_chapol_class br_sslrec_out_chapol_vtable = {
 		const void *, const void *))
 		&out_chapol_init
 };
+
+#endif
+

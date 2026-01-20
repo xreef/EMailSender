@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2017 Thomas Pornin <pornin@bolet.org>
  *
@@ -250,3 +253,6 @@ br_prng_seeder_system(const char **name)
 	return 0;
 #endif
 }
+
+#endif
+

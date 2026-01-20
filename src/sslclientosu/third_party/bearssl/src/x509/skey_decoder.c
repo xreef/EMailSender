@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /* Automatically generated code; do not modify directly. */
 
 #include <stddef.h>
@@ -648,3 +651,6 @@ t0_exit:
 	((t0_context *)t0ctx)->rp = rp;
 	((t0_context *)t0ctx)->ip = ip;
 }
+
+#endif
+

@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2016 Thomas Pornin <pornin@bolet.org>
  *
@@ -157,3 +160,6 @@ br_aes_ct64_bitslice_decrypt(unsigned num_rounds,
 	br_aes_ct64_bitslice_invSbox(q);
 	add_round_key(q, skey);
 }
+
+#endif
+

@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2016 Thomas Pornin <pornin@bolet.org>
  *
@@ -189,3 +192,6 @@ const br_hash_class br_sha1_vtable = {
 	(void (*)(const br_hash_class **, const void *, uint64_t))
 		&br_sha1_set_state
 };
+
+#endif
+

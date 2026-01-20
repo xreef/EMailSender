@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2016 Thomas Pornin <pornin@bolet.org>
  *
@@ -535,3 +538,6 @@ void br_ssl_session_cache_lru_forget(
 		br_enc16be(cc->store + addr + VERSION_OFF, 0);
 	}
 }
+
+#endif
+

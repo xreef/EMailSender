@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2017 Thomas Pornin <pornin@bolet.org>
  *
@@ -316,3 +319,6 @@ const br_aead_class br_gcm_vtable = {
 	(uint32_t (*)(const br_aead_class **, const void *, size_t))
 		&br_gcm_check_tag_trunc
 };
+
+#endif
+

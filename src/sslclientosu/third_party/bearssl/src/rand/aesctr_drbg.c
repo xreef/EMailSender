@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2018 Thomas Pornin <pornin@bolet.org>
  *
@@ -204,3 +207,6 @@ const br_prng_class br_aesctr_drbg_vtable = {
 	(void (*)(const br_prng_class **, const void *, size_t))
 		&br_aesctr_drbg_update
 };
+
+#endif
+

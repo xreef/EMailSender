@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2016 Thomas Pornin <pornin@bolet.org>
  *
@@ -136,3 +139,6 @@ br_i32_muladd_small(uint32_t *x, uint32_t z, const uint32_t *m)
 	br_i32_add(x, m, over);
 	br_i32_sub(x, m, under);
 }
+
+#endif
+

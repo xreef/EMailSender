@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2016 Thomas Pornin <pornin@bolet.org>
  *
@@ -120,3 +123,6 @@ br_hmac_out(const br_hmac_context *ctx, void *out)
 	memcpy(out, tmp, ctx->out_len);
 	return ctx->out_len;
 }
+
+#endif
+

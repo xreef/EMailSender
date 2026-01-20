@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2016 Thomas Pornin <pornin@bolet.org>
  *
@@ -1582,3 +1585,6 @@ br_ssl_engine_switch_ccm_out(br_ssl_engine_context *cc,
 	cc->iccm_out->init(&cc->out.ccm.vtable.out,
 		bc_impl, cipher_key, cipher_key_len, iv, tag_len);
 }
+
+#endif
+

@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2017 Thomas Pornin <pornin@bolet.org>
  *
@@ -42,3 +45,6 @@ br_i15_bit_length(uint16_t *x, size_t xlen)
 	}
 	return (twk << 4) + BIT_LENGTH(tw);
 }
+
+#endif
+

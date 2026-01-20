@@ -1,4 +1,7 @@
 #include "OSUSSLClientAdapter.h"
+#include "../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 
 namespace sslclientosu {
 // Adapter completamente inline nell'header; nessuna implementazione qui.
@@ -71,3 +74,6 @@ void OSUSSLClientAdapter::stop() {
 void OSUSSLClientAdapter::setDebug(int level) {
     // Non fa nulla, il livello di debug può essere impostato solo nel costruttore
 }
+
+#endif
+

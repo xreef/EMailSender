@@ -9,10 +9,10 @@
  *  This is necessary because the Arduino IDE has limitations on how it discovers and compiles source files in subdirectories.
  */
 
-// NOTE: Do NOT force-enable EMAIL_ENABLE_OPENSLAB_SSLCLIENT here.
-// The feature should be enabled explicitly in EMailSenderKey.h or via build flags
 // (for example -DEMAIL_ENABLE_OPENSLAB_SSLCLIENT) so users control whether
 // the OpenSLab SSL client backend is compiled.
+
+#include "EMailSenderKey.h"
 
 #if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) && !defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 

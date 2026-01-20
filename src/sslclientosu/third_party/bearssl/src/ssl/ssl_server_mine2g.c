@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2016 Thomas Pornin <pornin@bolet.org>
  *
@@ -69,3 +72,6 @@ br_ssl_server_init_mine2g(br_ssl_server_context *cc,
 	 */
 	br_ssl_engine_set_default_aes_gcm(&cc->eng);
 }
+
+#endif
+

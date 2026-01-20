@@ -241,10 +241,16 @@ EMailSender::Response EMailSender::awaitSMTPResponse(Client &client,
 		return response;
 	}
 	_serverResponce = line;
-	EMAIL_SENDER_DEBUG_PRINTLN(_serverResponce);
-	if (resp && _serverResponce.indexOf(resp) == -1){
+	EMAIL_SENDER_DEBUG_PRINTLN(line);
+#if defined(ESP32)
+	_serverResponce = line;
+#endif
+	if (resp && line.indexOf(resp) == -1){
 		response.code = resp;
-		response.desc = respDesc + String(" (") + _serverResponce + String(")");
+		response.desc = respDesc;
+		response.desc += F(" (");
+		response.desc += line;
+		response.desc += ')';
 		response.status = false;
 		return response;
 	}
@@ -264,8 +270,10 @@ EMailSender::Response EMailSender::awaitSMTPResponseDrain(Client &client,
         String line;
         bool ok = readLineWithTimeout(client, line, timeOut);
         if (!ok) break; // no more lines
-        _serverResponce = line;
         EMAIL_SENDER_DEBUG_PRINTLN(line);
+#if defined(ESP32)
+        _serverResponce = line;
+#endif
         if (line.startsWith("250-")) continue; // still 250- lines
         if (line.startsWith("250 ")) break;    // last 250 <space> line
         // Different response: stop here and keep it in _serverResponce
@@ -606,6 +614,13 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
         } else {
             // Per altre porte (465 - SSL implicito), usa WiFiClientSecure
             localClient.setInsecure();
+
+#if (EMAIL_NETWORK_TYPE == NETWORK_ESP8266 || EMAIL_NETWORK_TYPE == NETWORK_ESP8266_242)
+            // Force 512 bytes buffer to save RAM (MFLN 512)
+            // We skip probing because it might fail due to OOM or other reasons, 
+            // but we know Gmail supports it and it's critical for ESP8266 heap.
+            localClient.setBufferSizes(512, 512);
+#endif
             bool connected = localClient.connect(this->smtp_server, this->smtp_port);
             if (!connected) {
                 IPAddress ip;
@@ -632,10 +647,14 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
                 return response;
             }
 
-            String commandHELO = this->useEHLO ? "EHLO" : "HELO";
-            String helo = commandHELO + " "+String(publicIPDescriptor)+" ";
-            EMAIL_SENDER_DEBUG_PRINTLN(helo);
-            localClient.println(helo);
+            const char* commandHELO = this->useEHLO ? "EHLO" : "HELO";
+            EMAIL_SENDER_DEBUG_PRINT(commandHELO);
+            EMAIL_SENDER_DEBUG_PRINT(" ");
+            EMAIL_SENDER_DEBUG_PRINTLN(publicIPDescriptor);
+
+            localClient.print(commandHELO);
+            localClient.print(' ');
+            localClient.println(publicIPDescriptor);
 
             if (this->useEHLO) {
                 response = awaitSMTPResponseDrain(localClient, "250", "Identification error");
@@ -738,9 +757,10 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
                 logPass[maincont++] = this->email_password[i];
             }
 
-            String auth = "AUTH PLAIN "+String(encode64_f(logPass, size));
-            EMAIL_SENDER_DEBUG_PRINTLN(auth);
-            activeClient->println(auth);
+            EMAIL_SENDER_DEBUG_PRINT(F("AUTH PLAIN "));
+            EMAIL_SENDER_DEBUG_PRINTLN(encode64_f(logPass, size));
+            activeClient->print(F("AUTH PLAIN "));
+            activeClient->println(encode64_f(logPass, size));
             free(logPass);
         }
 #if defined(ESP32)
@@ -947,7 +967,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 		      attachments.fileDescriptor[i].url.length()==0){
 			  EMailSender::Response response;
 			  response.code = F("400");
-			  response.desc = "Error no filename specified for the file "+attachments.fileDescriptor[i].filename;
+			  response.desc = String(F("Error no filename specified for the file "))+attachments.fileDescriptor[i].filename;
 			  response.status = false;
 			  client.flush();
 			  client.stop();
@@ -957,7 +977,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 		  if (attachments.fileDescriptor[i].mime.length()==0){
 			  EMailSender::Response response;
 			  response.code = F("400");
-			  response.desc = "Error no mime type specified for the file "+attachments.fileDescriptor[i].url;
+			  response.desc = String(F("Error no mime type specified for the file "))+attachments.fileDescriptor[i].url;
 			  response.status = false;
 			  client.flush();
 			  client.stop();
@@ -967,7 +987,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 		  if (attachments.fileDescriptor[i].filename.length()==0){
 			  EMailSender::Response response;
 			  response.code = F("400");
-			  response.desc = "Error no filename specified for the file "+attachments.fileDescriptor[i].url;
+			  response.desc = String(F("Error no filename specified for the file "))+attachments.fileDescriptor[i].url;
 			  response.status = false;
 			  client.flush();
 			  client.stop();
@@ -1068,7 +1088,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 				  else {
 					  EMailSender::Response response;
 					  response.code = F("404");
-					  response.desc = "Error opening attachments file "+attachments.fileDescriptor[i].url;
+					  response.desc = String(F("Error opening attachments file "))+attachments.fileDescriptor[i].url;
 					  response.status = false;
 					  client.flush();
 					  client.stop();
@@ -1132,7 +1152,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 			  } // Else myfile
 			  else {
 				  response.code = F("404");
-				  response.desc = "Error opening attachments file "+attachments.fileDescriptor[i].url;
+				  response.desc = String(F("Error opening attachments file "))+attachments.fileDescriptor[i].url;
 				  response.status = false;
 				  client.flush();
 				  client.stop();

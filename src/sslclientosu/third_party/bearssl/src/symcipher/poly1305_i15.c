@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2017 Thomas Pornin <pornin@bolet.org>
  *
@@ -219,3 +222,6 @@ br_poly1305_i15_run(const void *key, const void *iv,
 		ichacha(key, iv, 1, data, len);
 	}
 }
+
+#endif
+

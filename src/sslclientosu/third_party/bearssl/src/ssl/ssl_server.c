@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2016 Thomas Pornin <pornin@bolet.org>
  *
@@ -50,3 +53,6 @@ br_ssl_server_reset(br_ssl_server_context *cc)
 		br_ssl_hs_server_init_main, br_ssl_hs_server_run);
 	return br_ssl_engine_last_error(&cc->eng) == BR_ERR_OK;
 }
+
+#endif
+

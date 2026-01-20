@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2018 Thomas Pornin <pornin@bolet.org>
  *
@@ -211,3 +214,6 @@ const br_sslrec_out_ccm_class br_sslrec_out_ccm_vtable = {
 		const void *, size_t))
 		&out_ccm_init
 };
+
+#endif
+

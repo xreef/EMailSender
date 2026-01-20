@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2017 Thomas Pornin <pornin@bolet.org>
  *
@@ -44,3 +47,6 @@ const br_ec_curve_def br_curve25519 = {
 	ORDER, sizeof ORDER,
 	GEN, sizeof GEN
 };
+
+#endif
+

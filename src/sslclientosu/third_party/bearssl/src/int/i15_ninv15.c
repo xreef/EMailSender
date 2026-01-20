@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2017 Thomas Pornin <pornin@bolet.org>
  *
@@ -36,3 +39,6 @@ br_i15_ninv15(uint16_t x)
 	y = MUL15(y, 2 - MUL15(x, y));
 	return MUX(x & 1, -y, 0) & 0x7FFF;
 }
+
+#endif
+

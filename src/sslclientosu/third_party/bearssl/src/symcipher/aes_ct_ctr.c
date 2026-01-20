@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2016 Thomas Pornin <pornin@bolet.org>
  *
@@ -114,3 +117,6 @@ const br_block_ctr_class br_aes_ct_ctr_vtable = {
 		const void *, uint32_t, void *, size_t))
 		&br_aes_ct_ctr_run
 };
+
+#endif
+

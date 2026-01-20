@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2017 Thomas Pornin <pornin@bolet.org>
  *
@@ -30,3 +33,6 @@ br_ssl_client_set_default_rsapub(br_ssl_client_context *cc)
 {
 	br_ssl_client_set_rsapub(cc, br_rsa_public_get_default());
 }
+
+#endif
+

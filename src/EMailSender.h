@@ -543,7 +543,7 @@ private:
 	bool useEHLO = false;
 	bool isSASLLogin = false;
 
-	bool useAuth = true;
+    bool useAuth = true;
         bool isCramMD5Login = false;
 
     String _serverResponce;

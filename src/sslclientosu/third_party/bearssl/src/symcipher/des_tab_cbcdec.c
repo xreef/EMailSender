@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2016 Thomas Pornin <pornin@bolet.org>
  *
@@ -83,3 +86,6 @@ const br_block_cbcdec_class br_des_tab_cbcdec_vtable = {
 	(void (*)(const br_block_cbcdec_class *const *, void *, void *, size_t))
 		&br_des_tab_cbcdec_run
 };
+
+#endif
+

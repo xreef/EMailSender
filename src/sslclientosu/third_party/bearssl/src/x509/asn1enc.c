@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2018 Thomas Pornin <pornin@bolet.org>
  *
@@ -91,3 +94,6 @@ br_asn1_encode_uint(void *dest, br_asn1_uint pp)
 	memcpy(buf + pp.asn1len - pp.len, pp.data, pp.len);
 	return 1 + lenlen + pp.asn1len;
 }
+
+#endif
+

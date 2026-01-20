@@ -1,3 +1,6 @@
+﻿#include "../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2019 OSU OPEnS Lab
  *
@@ -464,3 +467,6 @@ br_client_init_TLS12_only(br_ssl_client_context *cc,
 	 */
 	br_ssl_engine_set_x509(&cc->eng, &xc->vtable);
 }
+
+#endif
+

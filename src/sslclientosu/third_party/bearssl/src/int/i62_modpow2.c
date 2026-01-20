@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2017 Thomas Pornin <pornin@bolet.org>
  *
@@ -491,3 +494,6 @@ br_i62_modpow_opt_as_i31(uint32_t *x31, const unsigned char *e, size_t elen,
 	return br_i62_modpow_opt(x31, e, elen, m31, m0i31,
 		(uint64_t *)tmp, twlen >> 1);
 }
+
+#endif
+

@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2018 Thomas Pornin <pornin@bolet.org>
  *
@@ -150,3 +153,6 @@ br_rsa_i15_compute_pubexp(const br_rsa_private_key *sk)
 	eq = get_pubexp(sk->q, sk->qlen, sk->dq, sk->dqlen);
 	return ep & -EQ(ep, eq);
 }
+
+#endif
+

@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /* Automatically generated code; do not modify directly. */
 
 #include <stddef.h>
@@ -1710,4 +1713,7 @@ verify_signature(br_x509_minimal_context *ctx, const br_x509_pkey *pk)
 	}
 }
 
+
+
+#endif
 

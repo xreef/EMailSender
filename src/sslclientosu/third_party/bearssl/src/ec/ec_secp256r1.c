@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2016 Thomas Pornin <pornin@bolet.org>
  *
@@ -49,3 +52,6 @@ const br_ec_curve_def br_secp256r1 = {
 	P256_N, sizeof P256_N,
 	P256_G, sizeof P256_G
 };
+
+#endif
+

@@ -1,3 +1,6 @@
+﻿#include "../../../../../EMailSenderKey.h"
+
+#if defined(EMAIL_ENABLE_OPENSLAB_SSLCLIENT) || defined(EMAIL_ENABLE_EXTERNAL_SSLCLIENT_OPENSLAB)
 /*
  * Copyright (c) 2018 Thomas Pornin <pornin@bolet.org>
  *
@@ -95,3 +98,6 @@ br_encode_rsa_pkcs8_der(void *dest, const br_rsa_private_key *sk,
 		return 1 + lenlen + len_seq;
 	}
 }
+
+#endif
+
