@@ -394,6 +394,7 @@
 	#define EMAIL_SENDER_SSL_CLIENT_DEBUG 2
 #endif
 
+
 class EMailSender {
 public:
 	EMailSender(const char* email_login, const char* email_password, const char* email_from, const char* name_from, const char* smtp_server, uint16_t smtp_port );
@@ -401,6 +402,7 @@ public:
 	EMailSender(const char* email_login, const char* email_password, const char* email_from, const char* name_from );
 	EMailSender(const char* email_login, const char* email_password, const char* email_from);
 	EMailSender(const char* email_login, const char* email_password);
+	~EMailSender() { delete[] smtp_server; delete[] email_login; delete[] email_from; delete[] name_from; delete[] email_password; }
 
 #define STORAGE_SPIFFS (1)
 #define STORAGE_LITTLEFS (2)
