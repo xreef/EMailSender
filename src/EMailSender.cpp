@@ -895,20 +895,28 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
     activeClient->println(email.subject);
 
 #ifdef MANAGE_DATE_HEADER
-    #if defined(ESP32) || defined(ESP8266)
-        configTime(0, 0, "pool.ntp.org");
-        struct tm timeinfo;
+    #if (defined(ESP32) || defined(ESP8266)) && defined(EMAILSENDER_ENABLE_TIME)
+        // Note: configTime() is NOT called here to preserve user's timezone settings.
+        // We only use getLocalTime() if the user already configured NTP/time; otherwise fallback.
         char buf[64];
-        if (getLocalTime(&timeinfo, 5000)) {  // wait up to 5s
-            strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S +0000", &timeinfo);
+        struct tm timeinfo;
+        if (getLocalTime(&timeinfo, 0)) { // non-blocking check; returns false if time not configured
+            // Convert local time (with user's TZ/DST) to UTC for RFC2822 header
+            time_t now = mktime(&timeinfo);
+            struct tm* utc = gmtime(&now);
+            if (utc != NULL) {
+                strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S +0000", utc);
+            } else {
+                strcpy(buf, "Mon, 01 Jan 2001 00:00:00 +0000");
+            }
         } else {
-            // Fallback to a fixed RFC2822-like date to ensure exactly one Date header exists
+            // Fallback when NTP is not configured or time not synced yet
             strcpy(buf, "Mon, 01 Jan 2001 00:00:00 +0000");
         }
         activeClient->print(F("Date: "));
         activeClient->println(buf);
     #else
-        // Generic fallback for other platforms
+        // Generic fallback or when EMAILSENDER_ENABLE_TIME is not defined
         activeClient->println(F("Date: Mon, 01 Jan 2001 00:00:00 +0000"));
     #endif
 #endif

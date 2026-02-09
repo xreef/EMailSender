@@ -48,6 +48,9 @@
 
 // Ensure Date header is generated once by the library
 #define MANAGE_DATE_HEADER
+// Opt-in: usa l'orario già configurato (NTP/TZ) su ESP32/ESP8266 per compilare l'header Date.
+// Lascialo commentato se vuoi mantenere il fallback statico e non usare getLocalTime.
+// #define EMAILSENDER_ENABLE_TIME
 
 // Define where debug output will be printed.
 #define EMAIL_SENDER_DEBUG_PRINTER Serial
