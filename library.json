@@ -14,6 +14,6 @@
 	},
 	"url": "https://www.mischianti.org/category/my-libraries/emailsender-send-email-with-attachments/",
 	"frameworks": "Arduino",
-	"version": "4.1.3",
+	"version": "4.1.4",
 	"platforms": "*"
 }

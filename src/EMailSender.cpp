@@ -1186,14 +1186,7 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 				return response;
 			}
 
-			if (attachments.fileDescriptor[i].streamSize == 0) {
-				response.code = F("500");
-				response.desc = F("Stream size must be specified for EMAIL_STORAGE_TYPE_STREAM");
-				response.status = false;
-				client.flush();
-				client.stop();
-				return response;
-			}
+			// Removed check for streamSize == 0 to allow unknown size
 
 			Stream* streamPtr = attachments.fileDescriptor[i].stream;
 			size_t totalSize = attachments.fileDescriptor[i].streamSize;
@@ -1207,22 +1200,40 @@ EMailSender::Response EMailSender::send(const char* to[], byte sizeOfTo,  byte s
 				encode(streamPtr, &client);
 			} else {
 				EMAIL_SENDER_DEBUG_PRINTLN(F("NORMAL read from Stream"));
-				while (bytesRead < totalSize && streamPtr->available()) {
-					size_t toRead = min((size_t)64, totalSize - bytesRead);
-					clientCount = streamPtr->readBytes(tBuf, toRead);
-					if (clientCount > 0) {
-						client.write((byte*)tBuf, clientCount);
-						bytesRead += clientCount;
-					} else {
-						break;
+				if (totalSize > 0) {
+					while (bytesRead < totalSize && streamPtr->available()) {
+						size_t toRead = min((size_t)64, totalSize - bytesRead);
+						clientCount = streamPtr->readBytes(tBuf, toRead);
+						if (clientCount > 0) {
+							client.write((byte*)tBuf, clientCount);
+							bytesRead += clientCount;
+						} else {
+							break;
+						}
 					}
-				}
 
-				if (bytesRead < totalSize) {
-					EMAIL_SENDER_DEBUG_PRINT(F("Warning: Read "));
-					EMAIL_SENDER_DEBUG_PRINT(bytesRead);
-					EMAIL_SENDER_DEBUG_PRINT(F(" bytes, expected "));
-					EMAIL_SENDER_DEBUG_PRINTLN(totalSize);
+					if (bytesRead < totalSize) {
+						EMAIL_SENDER_DEBUG_PRINT(F("Warning: Read "));
+						EMAIL_SENDER_DEBUG_PRINT(bytesRead);
+						EMAIL_SENDER_DEBUG_PRINT(F(" bytes, expected "));
+						EMAIL_SENDER_DEBUG_PRINTLN(totalSize);
+					}
+				} else {
+					// Read until available() returns 0
+					while (streamPtr->available()) {
+                        // Optimize: read only what is available to avoid timeout delays, up to buffer size
+                        int avail = streamPtr->available();
+                        if (avail > 64) avail = 64;
+                        if (avail == 0) avail = 1; // Should not happen due to while loop, but safety for readBytes
+
+						clientCount = streamPtr->readBytes(tBuf, avail);
+						if (clientCount > 0) {
+							client.write((byte*)tBuf, clientCount);
+							bytesRead += clientCount;
+						} else {
+							break;
+						}
+					}
 				}
 			}
 

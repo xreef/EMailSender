@@ -1,4 +1,4 @@
-# EMailSender Library v4.1.3
+# EMailSender Library v4.1.4
 
 ![EMailSender Logo](https://raw.githubusercontent.com/xreef/EMailSender/master/resources/EMailSenderLogo.jpg)
 
@@ -156,7 +156,7 @@ Complete tutorials and articles available on [mischianti.org](https://www.mischi
 Add to your `platformio.ini`:
 ```ini
 lib_deps = 
-    xreef/EMailSender@^4.1.3
+    xreef/EMailSender@^4.1.4
 ```
 
 ### Manual Installation
@@ -276,6 +276,9 @@ For boards with limited RAM (like Arduino Uno):
 - Regular account password will not work
 
 ## Change log v4.x
+- 09/02/2026: v4.1.4
+  - Better stream management for attachments
+
 - 21/01/2026: v4.1.3
   - Memory optimization
   - Prevent error on esp8266 with buffer optimization [Jean-Pierre Issue](https://mischianti.org/forums/topic/emailsender-4-1-1-and-wemos-d1-r2/)
